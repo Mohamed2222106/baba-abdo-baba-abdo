@@ -1,3 +1,7 @@
+let tables = [];
+let activeTableId = null;
+
+// القائمة الافتراضية
 let menu = {
   "المكرونة": [
     { name: "مكرونة صغير", price: 25 },
@@ -9,7 +13,7 @@ let menu = {
   ],
 };
 
-// تحميل القائمة من التخزين المحلي أو استخدام القائمة الافتراضية
+// تحميل القائمة من التخزين المحلي أو القائمة الافتراضية
 function loadMenu() {
   const savedMenu = localStorage.getItem("menu");
   if (savedMenu) {
@@ -18,19 +22,40 @@ function loadMenu() {
   buildMenu();
 }
 
-// حفظ القائمة في التخزين المحلي
+// حفظ القائمة إلى التخزين المحلي
 function saveMenu() {
   localStorage.setItem("menu", JSON.stringify(menu));
 }
 
-// بناء القائمة ديناميكيًا
+// إنشاء الترابيزات
+function createTables() {
+  const numTables = parseInt(document.getElementById("num-tables").value, 10);
+  const tablesContainer = document.getElementById("tables");
+  tablesContainer.innerHTML = "";
+  tables = [];
+
+  for (let i = 1; i <= numTables; i++) {
+    const table = { id: i, orders: [] };
+    tables.push(table);
+
+    const tableDiv = document.createElement("div");
+    tableDiv.classList.add("table");
+    tableDiv.innerHTML = `<h3>ترابيزة ${i}</h3>
+            <div id="orders-${i}"></div>
+            <p id="total-${i}">الإجمالي: 0</p>
+            <button onclick="endOrder(${i})">إنهاء الأوردر</button>`;
+    tableDiv.addEventListener("click", () => openMenu(i));
+    tablesContainer.appendChild(tableDiv);
+  }
+}
+
+// بناء القائمة
 function buildMenu() {
   const menuDiv = document.querySelector(".menu");
   menuDiv.innerHTML = "";
 
   for (const sectionName in menu) {
     const sectionDiv = document.createElement("div");
-    sectionDiv.classList.add("section");
     sectionDiv.innerHTML = `<h3>${sectionName}</h3>`;
     menu[sectionName].forEach((dish) => {
       const dishButton = document.createElement("button");
@@ -42,102 +67,63 @@ function buildMenu() {
   }
 }
 
-// فتح نافذة الإدارة
+// فتح نافذة القائمة
+function openMenu(tableId) {
+  activeTableId = tableId;
+  document.getElementById("menu-popup").style.display = "block";
+}
+
+// إضافة طلب إلى الترابيزة
+function addOrderToActiveTable(name, price) {
+  const table = tables.find((t) => t.id === activeTableId);
+  table.orders.push({ name, price });
+  displayOrders(table);
+  document.getElementById("menu-popup").style.display = "none";
+}
+
+// عرض الطلبات
+function displayOrders(table) {
+  const ordersDiv = document.getElementById(`orders-${table.id}`);
+  ordersDiv.innerHTML = "";
+  let total = 0;
+
+  table.orders.forEach((order, index) => {
+    total += order.price;
+    ordersDiv.innerHTML += `${order.name} - ${order.price} <button onclick="removeOrder(${table.id}, ${index})">حذف</button><br>`;
+  });
+
+  document.getElementById(`total-${table.id}`).textContent = `الإجمالي: ${total}`;
+}
+
+// حذف طلب
+function removeOrder(tableId, index) {
+  const table = tables.find((t) => t.id === tableId);
+  table.orders.splice(index, 1);
+  displayOrders(table);
+}
+
+// إنهاء الأوردر
+function endOrder(tableId) {
+  const table = tables.find((t) => t.id === tableId);
+  table.orders = [];
+  displayOrders(table);
+  alert(`تم إنهاء الأوردر للترابيزة ${tableId}`);
+}
+
+// إدارة الأقسام
 function openAdminPanel() {
   document.getElementById("admin-popup").style.display = "block";
   buildAdminPanel();
 }
 
-// إغلاق نافذة الإدارة
 function closeAdminPanel() {
   document.getElementById("admin-popup").style.display = "none";
 }
 
-// بناء واجهة الإدارة
 function buildAdminPanel() {
   const adminSections = document.getElementById("admin-sections");
   adminSections.innerHTML = "";
 
   for (const sectionName in menu) {
     const sectionDiv = document.createElement("div");
-    sectionDiv.innerHTML = `<h3>${sectionName}</h3>`;
-    menu[sectionName].forEach((dish, index) => {
-      const dishDiv = document.createElement("div");
-      dishDiv.innerHTML = `
-        ${dish.name} - ${dish.price} 
-        <button onclick="editDish('${sectionName}', ${index})">تعديل</button>
-        <button onclick="deleteDish('${sectionName}', ${index})">حذف</button>`;
-      sectionDiv.appendChild(dishDiv);
-    });
-    adminSections.appendChild(sectionDiv);
-  }
-
-  // تحديث اختيار القسم لإضافة الأطباق
-  const sectionSelect = document.getElementById("section-select");
-  sectionSelect.innerHTML = "";
-  for (const sectionName in menu) {
-    const option = document.createElement("option");
-    option.value = sectionName;
-    option.textContent = sectionName;
-    sectionSelect.appendChild(option);
-  }
-}
-
-// إضافة قسم جديد
-function addSection() {
-  const sectionName = document.getElementById("new-section-name").value;
-  if (sectionName && !menu[sectionName]) {
-    menu[sectionName] = [];
-    saveMenu();
-    buildMenu();
-    buildAdminPanel();
-    alert("تم إضافة القسم!");
-  } else {
-    alert("القسم موجود بالفعل أو الاسم غير صالح.");
-  }
-}
-
-// إضافة طبق جديد
-function addDish() {
-  const sectionName = document.getElementById("section-select").value;
-  const dishName = document.getElementById("new-dish-name").value;
-  const dishPrice = parseFloat(document.getElementById("new-dish-price").value);
-
-  if (sectionName && dishName && !isNaN(dishPrice)) {
-    menu[sectionName].push({ name: dishName, price: dishPrice });
-    saveMenu();
-    buildMenu();
-    buildAdminPanel();
-    alert("تم إضافة الطبق!");
-  } else {
-    alert("البيانات غير صالحة.");
-  }
-}
-
-// تعديل طبق
-function editDish(sectionName, dishIndex) {
-  const newPrice = prompt("أدخل السعر الجديد:");
-  if (!isNaN(parseFloat(newPrice))) {
-    menu[sectionName][dishIndex].price = parseFloat(newPrice);
-    saveMenu();
-    buildMenu();
-    buildAdminPanel();
-    alert("تم تعديل السعر!");
-  } else {
-    alert("السعر غير صالح.");
-  }
-}
-
-// حذف طبق
-function deleteDish(sectionName, dishIndex) {
-  if (confirm("هل أنت متأكد من حذف هذا الطبق؟")) {
-    menu[sectionName].splice(dishIndex, 1);
-    saveMenu();
-    buildMenu();
-    buildAdminPanel();
-    alert("تم حذف الطبق!");
-  }
-}
-
-// بدء التحميل
-loadMenu();
+    sectionDiv.innerHTML = `<h3>${sectionName}</h3
