@@ -1,0 +1,19 @@
+<!-- زر لفتح نافذة الإدارة -->
+<button onclick="openAdminPanel()">إدارة القائمة</button>
+
+<!-- نافذة إدارة القائمة -->
+<div id="admin-popup" class="menu-popup">
+  <h2>إدارة القائمة</h2>
+  <div id="admin-sections"></div>
+  <hr>
+  <h3>إضافة قسم جديد</h3>
+  <input type="text" id="new-section-name" placeholder="اسم القسم">
+  <button onclick="addSection()">إضافة القسم</button>
+  <hr>
+  <h3>إضافة طبق جديد</h3>
+  <select id="section-select"></select>
+  <input type="text" id="new-dish-name" placeholder="اسم الطبق">
+  <input type="number" id="new-dish-price" placeholder="السعر">
+  <button onclick="addDish()">إضافة الطبق</button>
+  <button onclick="closeAdminPanel()">إغلاق</button>
+</div>
