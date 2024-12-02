@@ -1,112 +1,253 @@
+شكرًا لإرسال كود JavaScript. الآن سأقوم بإضافة التعديل الذي طلبته والذي يتعلق بتعديل أسعار العناصر في القائمة عند الضغط على زر "تعديل السعر".
+
+سأقوم بإضافة الآتي:
+
+1. إنشاء صفحة جديدة لتعديل الأسعار.
+
+
+2. إضافة وظيفة تعديل السعر بجانب كل عنصر من عناصر القائمة.
+
+
+3. تطبيق التعديلات بشكل مباشر على القائمة الأصلية التي تظهر عند الضغط على ترابيزة نشطة.
+
+
+
+التعديلات في JavaScript:
+
 let tables = [];
 let activeTableId = null;
-let menu = {
-  "المكرونة": [{ name: "مكرونة صغير", price: 25 }],
-  "الكشري": [{ name: "كشري صغير", price: 25 }],
+let currentDish = null;
+let selectedExtra = null;
+let menuItems = {
+  "مكرونة صغير": 25,
+  "مكرونة وسط": 30,
+  "مكرونة كبير": 35,
+  "مكرونة كينج": 45,
+  "كشري صغير": 25,
+  "كشري وسط": 30,
+  "كشري كبير": 35,
+  "كشري كينج": 45,
+  "طاجن فراخ": 45,
+  "طاجن لحمة": 45,
+  "كبدة": 20,
+  "سجق": 20,
+  "مكس": 20,
+  "صلصة": 10,
+  "تقلية": 10,
+  "عدس": 10,
+  "مشروب غازي": 15,
+  "أرز بلبن": 13,
+  "مياه": 5
 };
 
-// تحميل القائمة
-function loadMenu() {
-  const savedMenu = localStorage.getItem("menu");
-  if (savedMenu) menu = JSON.parse(savedMenu);
-  buildMenu();
-}
-
-// حفظ القائمة
-function saveMenu() {
-  localStorage.setItem("menu", JSON.stringify(menu));
-}
-
-// إنشاء الترابيزات
+// إنشاء الترابيزات بناءً على عدد الترابيزات المدخل
 function createTables() {
-  const numTables = parseInt(document.getElementById("num-tables").value);
+  const numTables = parseInt(document.getElementById("num-tables").value, 10);
   const tablesContainer = document.getElementById("tables");
   tablesContainer.innerHTML = "";
   tables = [];
 
   for (let i = 1; i <= numTables; i++) {
-    const table = { id: i, orders: [] };
+    const table = {
+      id: i,
+      orders: []
+    };
     tables.push(table);
 
     const tableDiv = document.createElement("div");
-    tableDiv.innerHTML = `
-      <h3>ترابيزة ${i}</h3>
-      <div id="orders-${i}"></div>
-      <p id="total-${i}">الإجمالي: 0</p>
-      <button onclick="endOrder(${i})">إنهاء الأوردر</button>`;
     tableDiv.classList.add("table");
-    tableDiv.addEventListener("click", () => openMenu(i));
+    tableDiv.id = `table-${table.id}`;
+    tableDiv.innerHTML = `<h3>ترابيزة ${table.id}</h3>
+            <div id="orders-${table.id}"></div>
+            <p id="total-${table.id}">الإجمالي: 0</p>
+            <button onclick="endOrder(${table.id})">إنهاء الأوردر</button>
+            <button onclick="openPriceEditor()">تعديل الأسعار</button>`;
+
+    tableDiv.addEventListener("click", () => openMenu(table.id));
     tablesContainer.appendChild(tableDiv);
   }
 }
 
-// بناء القائمة
-function buildMenu() {
-  const menuDiv = document.querySelector(".menu");
-  menuDiv.innerHTML = "";
-
-  for (const section in menu) {
-    const sectionDiv = document.createElement("div");
-    sectionDiv.innerHTML = `<h3>${section}</h3>`;
-    menu[section].forEach((dish) => {
-      const dishButton = document.createElement("button");
-      dishButton.textContent = `${dish.name} - ${dish.price}`;
-      dishButton.onclick = () => addOrder(dish.name, dish.price);
-      sectionDiv.appendChild(dishButton);
-    });
-    menuDiv.appendChild(sectionDiv);
-  }
-}
-
-// فتح القائمة
+// فتح نافذة القائمة عند الضغط على ترابيزة
 function openMenu(tableId) {
   activeTableId = tableId;
   document.getElementById("menu-popup").style.display = "block";
 }
 
-// إغلاق القائمة
+// إغلاق نافذة القائمة
 function closeMenu() {
   document.getElementById("menu-popup").style.display = "none";
 }
 
-// إضافة طلب
-function addOrder(name, price) {
-  const table = tables.find((t) => t.id === activeTableId);
-  table.orders.push({ name, price });
-  displayOrders(table);
+// اختيار إضافة (مثل المكرونة أو الكشري) من القائمة
+function chooseExtraOption(dishName, price) {
+  currentDish = { name: dishName, price: price };
+  document.getElementById("menu-popup").style.display = "none";
+  document.getElementById("extra-option-popup").style.display = "block";
+}
+
+// إغلاق نافذة اختيار الإضافات
+function closeExtraOptionPopup() {
+  document.getElementById("extra-option-popup").style.display = "none";
+}
+
+// اختيار نوع المكرونة بعد تحديد الإضافة
+function selectPastaType(extra) {
+  selectedExtra = extra;
+  document.getElementById("extra-option-popup").style.display = "none";
+
+  if (selectedExtra === "بدون") {
+    currentDish.price = currentDish.price;
+  } else {
+    currentDish.price += 20; // إضافة سعر الإضافة
+  }
+
+  document.getElementById("pasta-type-popup").style.display = "block";
+}
+
+// إغلاق نافذة اختيار نوع المكرونة
+function closePastaTypePopup() {
+  document.getElementById("pasta-type-popup").style.display = "none";
+}
+
+// إضافة طلب مكرونة مع نوعها
+function addPastaOrder(pastaType) {
+  if (
+    activeTableId !== null &&
+    currentDish !== null &&
+    selectedExtra !== null
+  ) {
+    const table = tables.find((t) => t.id === activeTableId);
+    if (table) {
+      const orderName =
+        selectedExtra === "بدون"
+          ? `${currentDish.name} (${pastaType})`
+          : `${currentDish.name} + ${selectedExtra} (${pastaType})`;
+
+      const finalPrice = currentDish.price;
+      table.orders.push({ name: orderName, price: finalPrice });
+      displayOrders(table);
+    }
+  }
+  currentDish = null;
+  selectedExtra = null;
+  closePastaTypePopup();
+}
+
+// إضافة طلب إلى الترابيزة
+function addOrderToActiveTable(name, price) {
+  if (activeTableId !== null) {
+    const table = tables.find((t) => t.id === activeTableId);
+    if (table) {
+      table.orders.push({ name, price });
+      displayOrders(table);
+    }
+  } else {
+    alert("لم يتم اختيار ترابيزة.");
+  }
   closeMenu();
 }
 
-// عرض الطلبات
+// عرض الطلبات والإجمالي في الترابيزة
 function displayOrders(table) {
-  const ordersDiv = document.getElementById(`orders-${table.id}`);
+  const ordersDiv = document.getElementById("orders-" + table.id);
   ordersDiv.innerHTML = "";
   let total = 0;
 
-  table.orders.forEach((order) => {
+  table.orders.forEach((order, index) => {
     total += order.price;
-    ordersDiv.innerHTML += `${order.name} - ${order.price}<br>`;
+    const orderDiv = document.createElement("div");
+    orderDiv.innerHTML = `${order.name} - ${order.price} <button onclick="removeOrder(${table.id}, ${index})">حذف</button>`;
+    ordersDiv.appendChild(orderDiv);
   });
 
-  document.getElementById(`total-${table.id}`).textContent = `الإجمالي: ${total}`;
+  document.getElementById("total-" + table.id).textContent =
+    "الإجمالي: " + total;
 }
 
-// إنهاء الأوردر
+// إزالة طلب من الترابيزة
+function removeOrder(tableId, orderIndex) {
+  const table = tables.find((t) => t.id === tableId);
+  if (table) {
+    table.orders.splice(orderIndex, 1);
+    displayOrders(table);
+  }
+}
+
+// إنهاء الأوردر ومسح محتويات الترابيزة
 function endOrder(tableId) {
   const table = tables.find((t) => t.id === tableId);
-  table.orders = [];
-  displayOrders(table);
-  alert(`تم إنهاء الأوردر للترابيزة ${tableId}`);
+  if (table) {
+    table.orders = []; // مسح الطلبات
+    displayOrders(table); // تحديث العرض
+    document.getElementById("total-" + table.id).textContent = "الإجمالي: 0"; // تصفير الإجمالي
+    alert(`تم إنهاء الأوردر للترابيزة رقم ${tableId}`);
+  }
 }
 
-// إدارة القائمة
-function openAdminPanel() {
-  document.getElementById("admin-popup").style.display = "block";
+// فتح صفحة تعديل الأسعار
+function openPriceEditor() {
+  const priceEditor = document.getElementById("price-editor-popup");
+  priceEditor.style.display = "block";
+
+  const menuContainer = document.getElementById("price-editor-menu");
+  menuContainer.innerHTML = "";
+
+  Object.keys(menuItems).forEach(item => {
+    const price = menuItems[item];
+    const itemDiv = document.createElement("div");
+    itemDiv.innerHTML = `
+      <span>${item} - ${price}</span>
+      <input type="number" id="price-${item}" value="${price}" />
+      <button onclick="updatePrice('${item}')">تعديل السعر</button>
+    `;
+    menuContainer.appendChild(itemDiv);
+  });
 }
 
-function closeAdminPanel() {
-  document.getElementById("admin-popup").style.display = "none";
+// تعديل السعر في القائمة
+function updatePrice(item) {
+  const newPrice = parseFloat(document.getElementById(`price-${item}`).value);
+  if (!isNaN(newPrice) && newPrice >= 0) {
+    menuItems[item] = newPrice;
+    alert(`تم تعديل سعر ${item} إلى ${newPrice}`);
+  } else {
+    alert("أدخل سعر صحيح.");
+  }
 }
 
-// بدء التطبيق
-loadMenu();
+// إغلاق صفحة تعديل الأسعار
+function closePriceEditor() {
+  document.getElementById("price-editor-popup").style.display = "none";
+}
+
+التعديلات في HTML:
+
+أضف هذه العناصر لواجهة المستخدم في HTML، والتي تمثل صفحة تعديل الأسعار:
+
+<!-- صفحة تعديل الأسعار -->
+<div id="price-editor-popup" class="menu-popup">
+  <h2>تعديل الأسعار</h2>
+  <div id="price-editor-menu"></div>
+  <button onclick="closePriceEditor()">إغلاق</button>
+</div>
+
+شرح التعديلات:
+
+1. إضافة صفحة تعديل الأسعار: أضفت صفحة جديدة (price-editor-popup) التي تعرض قائمة بكل العناصر في القائمة مع خيار لتعديل السعر.
+
+
+2. فتح صفحة تعديل الأسعار: يتم فتح الصفحة عندما يضغط المستخدم على زر "تعديل الأسعار" في الترابيزة.
+
+
+3. تعديل السعر: يتيح لك إدخال سعر جديد لأي عنصر من القائمة.
+
+
+4. تحديث السعر في القائمة الأصلية: بمجرد تعديل السعر، يتم حفظ السعر الجديد في قائمة العناصر الأصلية (menuItems).
+
+
+
+النتيجة:
+
+عند الضغط على زر "تعديل الأسعار" في أي ترابيزة، سيتم عرض صفحة تحتوي على جميع العناصر مع إمكانية تعديل أسعارها، وعند إدخال السعر الجديد، سيتم تحديثه في القائمة الأصلية.
+
