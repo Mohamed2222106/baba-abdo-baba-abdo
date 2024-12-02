@@ -1,50 +1,248 @@
-/* Reset */
+بالطبع! إليك الأكواد النهائية التي تحتاجها لتطبيقك، بدايةً من كود HTML، ثم كود CSS، وأخيراً كود JavaScript.
+
+1. كود HTML:
+
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>تطبيق طلبات المطعم</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="container">
+
+    <h1>باباعبده</h1>
+
+    <label for="num-tables">عدد الترابيزات:</label>
+    <input type="number" id="num-tables" min="1" max="10" value="1">
+    <button onclick="createTables()">إنشاء الترابيزات</button>
+
+    <div id="tables"></div>
+
+    <!-- قائمة الطعام كنافذة منبثقة -->
+    <div id="menu-popup" class="menu-popup">
+      <h2>القائمة</h2>
+      <div class="menu">
+        <!-- قسم المكرونة -->
+        <div class="section">
+          <h3>المكرونة</h3>
+          <button onclick="chooseExtraOption('مكرونة صغير', 25)">مكرونة صغير - 25</button>
+          <button onclick="chooseExtraOption('مكرونة وسط', 30)">مكرونة وسط - 30</button>
+          <button onclick="chooseExtraOption('مكرونة كبير', 35)">مكرونة كبير - 35</button>
+          <button onclick="chooseExtraOption('مكرونة كينج', 45)">مكرونة كينج - 45</button>
+        </div>
+
+        <!-- قسم الكشري -->
+        <div class="section">
+          <h3>الكشري</h3>
+          <button onclick="addOrderToActiveTable('كشري صغير', 25)">كشري صغير - 25</button>
+          <button onclick="addOrderToActiveTable('كشري وسط', 30)">كشري وسط - 30</button>
+          <button onclick="addOrderToActiveTable('كشري كبير', 35)">كشري كبير - 35</button>
+          <button onclick="addOrderToActiveTable('كشري كينج', 45)">كشري كينج - 45</button>
+        </div>
+
+        <!-- قسم الطواجن -->
+        <div class="section">
+          <h3>الطواجن</h3>
+          <button onclick="addOrderToActiveTable('طاجن فراخ', 45)">طاجن فراخ - 45</button>
+          <button onclick="addOrderToActiveTable('طاجن لحمة', 45)">طاجن لحمة - 45</button>
+        </div>
+
+        <!-- قسم الإضافات -->
+        <div class="section">
+          <h3>الإضافات والمشروبات</h3>
+          <button onclick="addOrderToActiveTable('كبدة', 20)">كبدة - 20</button>
+          <button onclick="addOrderToActiveTable('سجق', 20)">سجق - 20</button>
+          <button onclick="addOrderToActiveTable('مكس', 20)">مكس - 20</button>
+          <button onclick="addOrderToActiveTable('صلصة', 10)">صلصة - 10</button>
+          <button onclick="addOrderToActiveTable('تقلية', 10)">تقلية - 10</button>
+          <button onclick="addOrderToActiveTable('عدس', 10)">عدس - 10</button>
+          <button onclick="addOrderToActiveTable('مشروب غازي', 15)">مشروب غازي - 15</button>
+          <button onclick="addOrderToActiveTable('أرز بلبن', 13)">أرز بلبن - 13</button>
+          <button onclick="addOrderToActiveTable('مياه', 5)">مياه - 5</button>
+        </div>
+      </div>
+      <button onclick="closeMenu()">إغلاق</button>
+    </div>
+
+    <!-- نافذة اختيار إضافات كبدة/سجق/مكس/بدون -->
+    <div id="extra-option-popup" class="menu-popup">
+      <h3>اختر إضافة:</h3>
+      <button onclick="selectPastaType('كبدة')">كبدة</button>
+      <button onclick="selectPastaType('سجق')">سجق</button>
+      <button onclick="selectPastaType('مكس')">مكس</button>
+      <button onclick="selectPastaType('بدون')">بدون</button>
+      <button onclick="closeExtraOptionPopup()">إلغاء</button>
+    </div>
+
+    <!-- نافذة اختيار نوع المكرونة -->
+    <div id="pasta-type-popup" class="menu-popup">
+      <h3>اختر نوع المكرونة:</h3>
+      <button onclick="addPastaOrder('اسباجتي')">اسباجتي</button>
+      <button onclick="addPastaOrder('مقصوصة')">مقصوصة</button>
+      <button onclick="addPastaOrder('مشكل')">مشكل</button>
+      <button onclick="closePastaTypePopup()">إلغاء</button>
+    </div>
+  </div>
+
+  <!-- أسفل التطبيق -->
+  <footer class="footer">
+    <p>التطبيق تحت إشراف: <span>محمد وليد سعد</span></p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
+
+
+---
+
+2. كود CSS:
+
+/* Reset CSS */
 * {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
+/* إعدادات الجسم */
 body {
-  font-family: Arial, sans-serif;
-  background: #f4f4f9;
-  color: #333;
-  direction: rtl;
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f9;
+    color: #333;
+    direction: rtl;
+    margin: 0;
+    padding: 0;
 }
 
+/* الحاوية الرئيسية */
 .container {
-  max-width: 1200px;
-  margin: 20px auto;
-  padding: 20px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.menu-popup {
-  display: none;
-  position: fixed;
-  top: 10%;
-  left: 5%;
-  width: 90%;
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
-  z-index: 1000;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  overflow-y: auto;
+/* العنوان الرئيسي */
+h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #4CAF50;
 }
 
+/* تسميات المدخلات */
+label, p, button {
+    font-size: 16px;
+    color: #555;
+}
+
+/* المدخلات */
+input[type="number"] {
+    padding: 8px;
+    font-size: 16px;
+    width: 80px;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* الأزرار */
 button {
-  padding: 10px;
-  margin: 5px;
-  background: #4CAF50;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-  background: #45a049;
+    background-color: #45a049;
 }
+
+/* الترابيزات */
+#tables {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+.table {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    width: 250px;
+    padding: 15px;
+    text-align: center;
+}
+
+.table h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.table p {
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.table button {
+    margin-top: 10px;
+}
+
+/* القائمة المنبثقة */
+.menu-popup {
+    display: none;
+    position: fixed;
+    top: 10%;
+    left: 5%;
+    width: 90%;
+    height: 80%;
+    overflow-y: auto; /* تمكين التمرير */
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.menu-popup h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.menu .section {
+    margin-bottom: 20px;
+}
+
+.menu .section h3 {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.menu button {
+    width: 100%; /* عرض الزر بالكامل */
+    padding: 12px;
+    font-size: 16px;
+    margin-bottom: 10px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
