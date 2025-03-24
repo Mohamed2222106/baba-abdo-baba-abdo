@@ -248,5 +248,13 @@
 
         loadHomeScreen();
     </script>
+    <script>
+    function removeMenuItem(index) {
+        let menu = JSON.parse(localStorage.getItem("menu")) || [];
+        menu.splice(index, 1);
+        localStorage.setItem("menu", JSON.stringify(menu));
+        displayMenuItems(); // تحديث القائمة بعد الحذف
+    }
+    </script>
 </body>
 </html>
