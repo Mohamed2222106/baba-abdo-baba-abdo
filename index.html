@@ -104,8 +104,7 @@
 
     <script>
         function loadHomeScreen() {
-            let main = document.getElementById("main-content");
-            main.innerHTML = `
+            document.getElementById("main-content").innerHTML = `
                 <button onclick="createTables()">إنشاء ترابيزات</button>
                 <button onclick="manageMenu()">إدارة المنيو</button>
                 <div id="tablesContainer"></div>
@@ -135,8 +134,7 @@
 
         function openTable(tableNumber) {
             localStorage.setItem("currentTable", tableNumber);
-            let main = document.getElementById("main-content");
-            main.innerHTML = `
+            document.getElementById("main-content").innerHTML = `
                 <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
                 <h3>قائمة الطعام</h3>
                 <div id="menu"></div>
@@ -149,15 +147,53 @@
             displayOrders();
         }
 
-        let menuItems = JSON.parse(localStorage.getItem("menu")) || [
-            { name: "بيتزا", price: 50 },
-            { name: "برجر", price: 40 },
-            { name: "مشروب غازي", price: 10 }
-        ];
+        function manageMenu() {
+            document.getElementById("main-content").innerHTML = `
+                <h2>إدارة المنيو</h2>
+                <div id="menuList"></div>
+                <input type="text" id="newItemName" placeholder="اسم الصنف">
+                <input type="number" id="newItemPrice" placeholder="السعر">
+                <button onclick="addItem()">إضافة صنف</button>
+                <button onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayMenuManagement();
+        }
+
+        function displayMenuManagement() {
+            let menuDiv = document.getElementById("menuList");
+            menuDiv.innerHTML = "";
+            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
+            menuItems.forEach((item, index) => {
+                let div = document.createElement("div");
+                div.innerHTML = `
+                    ${item.name} - ${item.price} جنيه
+                    <button onclick="removeItem(${index})">❌</button>
+                `;
+                menuDiv.appendChild(div);
+            });
+        }
+
+        function addItem() {
+            let name = document.getElementById("newItemName").value;
+            let price = document.getElementById("newItemPrice").value;
+            if (!name || !price) return alert("يرجى إدخال جميع البيانات");
+            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
+            menuItems.push({ name, price });
+            localStorage.setItem("menu", JSON.stringify(menuItems));
+            displayMenuManagement();
+        }
+
+        function removeItem(index) {
+            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
+            menuItems.splice(index, 1);
+            localStorage.setItem("menu", JSON.stringify(menuItems));
+            displayMenuManagement();
+        }
 
         function displayMenu() {
             let menuDiv = document.getElementById("menu");
             menuDiv.innerHTML = "";
+            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
             menuItems.forEach(item => {
                 let button = document.createElement("button");
                 button.textContent = `${item.name} - ${item.price} جنيه`;
@@ -169,7 +205,7 @@
         function addToOrder(item) {
             let tableNumber = localStorage.getItem("currentTable");
             let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders.push({ ...item, option: "" });
+            orders.push({ ...item, option: "", note: "" });
             localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
             displayOrders();
         }
@@ -186,7 +222,7 @@
                     <div class="options">
                         <button class="${item.option === 'إسباجتي' ? 'selected' : ''}" onclick="setOption(${index}, 'إسباجتي')">إسباجتي</button>
                         <button class="${item.option === 'مقصوصة' ? 'selected' : ''}" onclick="setOption(${index}, 'مقصوصة')">مقصوصة</button>
-                        <button onclick="addNote(${index})">ملحوظة</button>
+                        <button onclick="addNote(${index})">${item.note || 'ملحوظة'}</button>
                         <button onclick="removeOrder(${index})">❌</button>
                     </div>
                 `;
@@ -194,37 +230,15 @@
             });
         }
 
-        function setOption(index, option) {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders[index].option = option;
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-            displayOrders();
-        }
-
         function addNote(index) {
             let note = prompt("أدخل ملاحظتك:");
-            if (note) {
+            if (note !== null) {
                 let tableNumber = localStorage.getItem("currentTable");
                 let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-                orders[index].option = note;
+                orders[index].note = note;
                 localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
                 displayOrders();
             }
-        }
-
-        function removeOrder(index) {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders.splice(index, 1);
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-            displayOrders();
-        }
-
-        function clearOrders() {
-            let tableNumber = localStorage.getItem("currentTable");
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify([]));
-            displayOrders();
         }
 
         loadHomeScreen();
