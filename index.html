@@ -147,49 +147,6 @@
             displayOrders();
         }
 
-        function manageMenu() {
-            document.getElementById("main-content").innerHTML = `
-                <h2>إدارة المنيو</h2>
-                <div id="menuList"></div>
-                <input type="text" id="newItemName" placeholder="اسم الصنف">
-                <input type="number" id="newItemPrice" placeholder="السعر">
-                <button onclick="addItem()">إضافة صنف</button>
-                <button onclick="loadHomeScreen()">رجوع</button>
-            `;
-            displayMenuManagement();
-        }
-
-        function displayMenuManagement() {
-            let menuDiv = document.getElementById("menuList");
-            menuDiv.innerHTML = "";
-            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
-            menuItems.forEach((item, index) => {
-                let div = document.createElement("div");
-                div.innerHTML = `
-                    ${item.name} - ${item.price} جنيه
-                    <button onclick="removeItem(${index})">❌</button>
-                `;
-                menuDiv.appendChild(div);
-            });
-        }
-
-        function addItem() {
-            let name = document.getElementById("newItemName").value;
-            let price = document.getElementById("newItemPrice").value;
-            if (!name || !price) return alert("يرجى إدخال جميع البيانات");
-            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
-            menuItems.push({ name, price });
-            localStorage.setItem("menu", JSON.stringify(menuItems));
-            displayMenuManagement();
-        }
-
-        function removeItem(index) {
-            let menuItems = JSON.parse(localStorage.getItem("menu")) || [];
-            menuItems.splice(index, 1);
-            localStorage.setItem("menu", JSON.stringify(menuItems));
-            displayMenuManagement();
-        }
-
         function displayMenu() {
             let menuDiv = document.getElementById("menu");
             menuDiv.innerHTML = "";
@@ -230,6 +187,14 @@
             });
         }
 
+        function setOption(index, option) {
+            let tableNumber = localStorage.getItem("currentTable");
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            orders[index].option = option;
+            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+            displayOrders();
+        }
+
         function addNote(index) {
             let note = prompt("أدخل ملاحظتك:");
             if (note !== null) {
@@ -239,6 +204,20 @@
                 localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
                 displayOrders();
             }
+        }
+
+        function removeOrder(index) {
+            let tableNumber = localStorage.getItem("currentTable");
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            orders.splice(index, 1);
+            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+            displayOrders();
+        }
+
+        function clearOrders() {
+            let tableNumber = localStorage.getItem("currentTable");
+            localStorage.removeItem(`orders_${tableNumber}`);
+            displayOrders();
         }
 
         loadHomeScreen();
