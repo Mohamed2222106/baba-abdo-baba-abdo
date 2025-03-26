@@ -97,7 +97,106 @@
 button:hover {
     opacity: 0.8;
 }
-        
+
+
+        /* تنسيق عام للصفحة */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+/* ترويسة التطبيق */
+.header {
+    background-color: #007bff;
+    color: white;
+    text-align: center;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* تصميم الأزرار */
+button {
+    padding: 12px 20px;
+    margin: 5px;
+    background: #ADD8E6; /* اللون اللبني */
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: 0.3s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+button:hover {
+    background: #0056b3;
+    transform: scale(1.05);
+}
+
+/* تصميم الطاولات */
+.table-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 15px;
+    padding: 20px;
+}
+
+.table {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    cursor: pointer;
+    transition: 0.3s;
+    width: 150px;
+}
+
+.table:hover {
+    background: #ddd;
+    transform: scale(1.05);
+}
+
+/* تصميم نافذة إدارة المنيو */
+.menu-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: auto;
+    text-align: center;
+}
+
+/* تصميم الطلبات */
+.order-list {
+    list-style: none;
+    padding: 0;
+}
+
+.order-list li {
+    background: white;
+    padding: 10px;
+    margin: 5px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* تصميم الرسائل */
+.message {
+    background: #28a745;
+    color: white;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    margin-top: 10px;
+}
         
     </style>
 </head>
