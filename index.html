@@ -44,6 +44,30 @@
             opacity: 0.8;
         }
 
+        .table-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            padding: 20px;
+        }
+
+        .table {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 150px;
+        }
+
+        .table:hover {
+            background: #ddd;
+            transform: scale(1.05);
+        }
+
         .menu-container {
             background: white;
             padding: 20px;
@@ -54,31 +78,20 @@
             text-align: center;
         }
 
-        .section {
-            margin-bottom: 15px;
+        .category {
+            background: #eee;
             padding: 10px;
-            background: #f1f1f1;
-            border-radius: 5px;
+            margin: 10px 0;
+            border-radius: 8px;
         }
 
-        .section-title {
-            font-weight: bold;
-            cursor: pointer;
-            background: #007bff;
-            color: white;
-            padding: 8px;
-            border-radius: 5px;
+        .category h3 {
+            margin: 0;
             display: inline-block;
         }
 
-        .item {
-            background: white;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .category button {
+            margin-right: 10px;
         }
     </style>
 </head>
@@ -89,100 +102,115 @@
     </header>
 
     <main id="main-content">
+        <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="manageMenu()">إدارة المنيو</button>
-        <button onclick="loadHomeScreen()">رجوع</button>
-        <div id="menuList" class="menu-container"></div>
+        <div id="tablesContainer"></div>
     </main>
 
     <script>
         function loadHomeScreen() {
             document.getElementById("main-content").innerHTML = `
+                <button onclick="createTables()">إنشاء ترابيزات</button>
                 <button onclick="manageMenu()">إدارة المنيو</button>
-                <div id="menuList" class="menu-container"></div>
+                <div id="tablesContainer"></div>
             `;
-            displayMenuSections();
+            loadTables();
+        }
+
+        function createTables() {
+            let num = prompt("كم عدد الترابيزات؟");
+            if (!num || isNaN(num) || num <= 0) return;
+            localStorage.setItem("numTables", num);
+            loadTables();
+        }
+
+        function loadTables() {
+            let num = localStorage.getItem("numTables") || 0;
+            let container = document.getElementById("tablesContainer");
+            container.innerHTML = "";
+            for (let i = 1; i <= num; i++) {
+                let table = document.createElement("div");
+                table.classList.add("table");
+                table.textContent = `طاولة ${i}`;
+                table.setAttribute("data-table", i);
+                table.addEventListener("click", () => openTable(i));
+                container.appendChild(table);
+            }
         }
 
         function manageMenu() {
             document.getElementById("main-content").innerHTML = `
                 <h2>إدارة المنيو</h2>
-                <button onclick="addSection()">إضافة قسم</button>
+                <div id="menuList"></div>
+                <button onclick="addCategory()">إضافة قسم</button>
                 <button onclick="loadHomeScreen()">رجوع</button>
-                <div id="menuList" class="menu-container"></div>
             `;
-            displayMenuSections();
+            displayMenuItems();
         }
 
-        function addSection() {
-            let sectionName = prompt("أدخل اسم القسم:");
-            if (!sectionName) return;
+        function addCategory() {
+            let categoryName = prompt("اسم القسم:");
+            if (!categoryName) return;
             let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            menu.push({ name: sectionName, items: [] });
+            menu.push({ name: categoryName, items: [] });
             localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
+            displayMenuItems();
         }
 
-        function editSectionName(index) {
-            let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            let newName = prompt("أدخل الاسم الجديد للقسم:", menu[index].name);
-            if (newName) {
-                menu[index].name = newName;
-                localStorage.setItem("menu", JSON.stringify(menu));
-                displayMenuSections();
-            }
-        }
-
-        function removeSection(index) {
-            let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            menu.splice(index, 1);
-            localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
-        }
-
-        function addMenuItem(sectionIndex) {
+        function addMenuItem(categoryIndex) {
             let name = prompt("اسم الصنف:");
             let price = prompt("السعر:");
             if (!name || !price || isNaN(price)) return;
             let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            menu[sectionIndex].items.push({ name, price });
+            menu[categoryIndex].items.push({ name, price });
             localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
+            displayMenuItems();
         }
 
-        function removeMenuItem(sectionIndex, itemIndex) {
+        function editCategory(categoryIndex) {
+            let newName = prompt("أدخل اسم جديد للقسم:");
+            if (!newName) return;
             let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            menu[sectionIndex].items.splice(itemIndex, 1);
+            menu[categoryIndex].name = newName;
             localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
+            displayMenuItems();
         }
 
-        function displayMenuSections() {
+        function removeCategory(categoryIndex) {
+            let menu = JSON.parse(localStorage.getItem("menu")) || [];
+            menu.splice(categoryIndex, 1);
+            localStorage.setItem("menu", JSON.stringify(menu));
+            displayMenuItems();
+        }
+
+        function removeMenuItem(categoryIndex, itemIndex) {
+            let menu = JSON.parse(localStorage.getItem("menu")) || [];
+            menu[categoryIndex].items.splice(itemIndex, 1);
+            localStorage.setItem("menu", JSON.stringify(menu));
+            displayMenuItems();
+        }
+
+        function displayMenuItems() {
             let menuList = document.getElementById("menuList");
             menuList.innerHTML = "";
             let menu = JSON.parse(localStorage.getItem("menu")) || [];
-            menu.forEach((section, sectionIndex) => {
-                let sectionDiv = document.createElement("div");
-                sectionDiv.classList.add("section");
-                sectionDiv.innerHTML = `
-                    <div class="section-title" onclick="editSectionName(${sectionIndex})">
-                        ${section.name}
-                    </div>
-                    <button onclick="removeSection(${sectionIndex})">❌ حذف القسم</button>
-                    <button onclick="addMenuItem(${sectionIndex})">➕ إضافة صنف</button>
-                    <div id="items-${sectionIndex}"></div>
+            menu.forEach((category, categoryIndex) => {
+                let div = document.createElement("div");
+                div.classList.add("category");
+                div.innerHTML = `
+                    <h3>${category.name}</h3>
+                    <button onclick="editCategory(${categoryIndex})">✏️</button>
+                    <button onclick="removeCategory(${categoryIndex})">🗑️</button>
+                    <button onclick="addMenuItem(${categoryIndex})">➕ إضافة صنف</button>
+                    <ul>
+                        ${category.items.map((item, itemIndex) => `
+                            <li>${item.name} - ${item.price} جنيه
+                                <button onclick="removeMenuItem(${categoryIndex}, ${itemIndex})">❌</button>
+                            </li>
+                        `).join('')}
+                    </ul>
                 `;
-                menuList.appendChild(sectionDiv);
-
-                let itemsContainer = document.getElementById(`items-${sectionIndex}`);
-                section.items.forEach((item, itemIndex) => {
-                    let itemDiv = document.createElement("div");
-                    itemDiv.classList.add("item");
-                    itemDiv.innerHTML = `
-                        ${item.name} - ${item.price} جنيه
-                        <button onclick="removeMenuItem(${sectionIndex}, ${itemIndex})">❌</button>
-                    `;
-                    itemsContainer.appendChild(itemDiv);
-                });
+                menuList.appendChild(div);
             });
         }
 
