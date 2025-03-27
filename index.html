@@ -138,14 +138,30 @@
             }
         }
 
-        function manageMenu() {
+        function openTable(tableNumber) {
+            document.getElementById("main-content").innerHTML = `
+                <h2>طلبات طاولة ${tableNumber}</h2>
+                <div id="ordersList"></div>
+                <button onclick="manageMenu(${tableNumber})">إضافة طلب</button>
+                <button onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayOrders(tableNumber);
+        }
+
+        function displayOrders(tableNumber) {
+            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+            let ordersList = document.getElementById("ordersList");
+            ordersList.innerHTML = orders.map(order => `<p>${order}</p>`).join('');
+        }
+
+        function manageMenu(tableNumber = null) {
             document.getElementById("main-content").innerHTML = `
                 <h2>إدارة المنيو</h2>
                 <div id="menuList"></div>
                 <button onclick="addCategory()">إضافة قسم</button>
                 <button onclick="loadHomeScreen()">رجوع</button>
             `;
-            displayMenuItems();
+            displayMenuItems(tableNumber);
         }
 
         function addCategory() {
@@ -190,7 +206,7 @@
             displayMenuItems();
         }
 
-        function displayMenuItems() {
+        function displayMenuItems(tableNumber = null) {
             let menuList = document.getElementById("menuList");
             menuList.innerHTML = "";
             let menu = JSON.parse(localStorage.getItem("menu")) || [];
@@ -202,13 +218,6 @@
                     <button onclick="editCategory(${categoryIndex})">✏️</button>
                     <button onclick="removeCategory(${categoryIndex})">🗑️</button>
                     <button onclick="addMenuItem(${categoryIndex})">➕ إضافة صنف</button>
-                    <ul>
-                        ${category.items.map((item, itemIndex) => `
-                            <li>${item.name} - ${item.price} جنيه
-                                <button onclick="removeMenuItem(${categoryIndex}, ${itemIndex})">❌</button>
-                            </li>
-                        `).join('')}
-                    </ul>
                 `;
                 menuList.appendChild(div);
             });
