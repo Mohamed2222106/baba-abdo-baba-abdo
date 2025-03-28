@@ -3,190 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المطعم</title>
+    <title>بابا عبده</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #f8f9fa; text-align: center; }
-        h1 { color: #333; }
-        .container { width: 80%; margin: auto; }
-        .section { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
-        .menu-section h2, .table-section h2 { color: #007bff; }
-        .menu-item, .order-item, .table-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
-        button { margin: 5px; padding: 10px; border: none; cursor: pointer; border-radius: 5px; }
-        .add-btn { background: #007bff; color: white; }
-        .delete { background: red; color: white; }
-        .note-btn { background: orange; color: white; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: rtl;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+        }
+
+        header {
+            background: #ff6600;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            position: relative;
+        }
+
+        .small-text {
+            position: absolute;
+            left: 10px;
+            top: 5px;
+            font-size: 12px;
+            color: white;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            opacity: 0.8;
+        }
+
+        .selected {
+            background: green !important;
+        }
+
+        #tablesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .table {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 2px solid #ff6600;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+
+        /* تصميم نافذة إدارة المنيو */
+        #menuPopup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 300px;
+            text-align: center;
+        }
+
+        #menuPopup .close-btn {
+            background: #ff0000;
+            margin-top: 10px;
+        }
+
+        .menu-section {
+            background: #f1f1f1;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 8px;
+        }
+
+        .menu-item {
+            background: white;
+            padding: 5px;
+            margin: 3px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
     </style>
 </head>
 <body>
-    <h1>إدارة المطعم</h1>
-    <div class="container">
+    <header>
+        <h1>بابا عبده</h1>
+        <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
+    </header>
 
-        <!-- إدارة الطاولات -->
-        <div class="section table-section">
-            <h2>🪑 إدارة الطاولات</h2>
-            <button class="add-btn" onclick="addTable()">+ إضافة طاولة جديدة</button>
-            <div id="tables"></div>
-        </div>
+    <main id="main-content">
+        <button onclick="createTables()">إنشاء ترابيزات</button>
+        <button onclick="openMenuPopup()">إدارة المنيو</button>
+        <div id="tablesContainer"></div>
+    </main>
 
-        <!-- إدارة المنيو -->
-        <div class="section menu-section">
-            <h2>🍽️ إدارة المنيو</h2>
-            <button class="add-btn" onclick="addSection()">+ إضافة قسم جديد</button>
-            <div id="menu"></div>
-        </div>
+    <!-- نافذة إدارة المنيو -->
+    <div id="menuPopup">
+        <h2>إدارة المنيو</h2>
+        <button onclick="addMenuSection()">إضافة قسم جديد</button>
+        <div id="menuSections"></div>
+        <button class="close-btn" onclick="closeMenuPopup()">إغلاق</button>
     </div>
 
     <script>
-        let menu = JSON.parse(localStorage.getItem("menu")) || {};
-        let tables = JSON.parse(localStorage.getItem("tables")) || {};
-
-        function saveData() {
-            localStorage.setItem("menu", JSON.stringify(menu));
-            localStorage.setItem("tables", JSON.stringify(tables));
+        function createTables() {
+            let num = prompt("كم عدد الترابيزات؟");
+            if (!num || isNaN(num) || num <= 0) return;
+            localStorage.setItem("numTables", num);
+            loadTables();
         }
 
-        /* إدارة الطاولات */
-        function renderTables() {
-            let tablesDiv = document.getElementById("tables");
-            tablesDiv.innerHTML = "";
-            Object.keys(tables).forEach(tableId => {
-                let tableDiv = document.createElement("div");
-                tableDiv.className = "table-item";
-                tableDiv.innerHTML = `
-                    <strong>طاولة ${tableId}</strong>
-                    <button onclick="viewOrders('${tableId}')">📜 عرض الطلبات</button>
-                    <button class="delete" onclick="deleteTable('${tableId}')">❌ حذف</button>
-                `;
-                tablesDiv.appendChild(tableDiv);
+        function loadTables() {
+            let num = localStorage.getItem("numTables") || 0;
+            let container = document.getElementById("tablesContainer");
+            container.innerHTML = "";
+            for (let i = 1; i <= num; i++) {
+                let table = document.createElement("div");
+                table.classList.add("table");
+                table.textContent = `طاولة ${i}`;
+                table.setAttribute("data-table", i);
+                table.addEventListener("click", () => openTable(i));
+                container.appendChild(table);
+            }
+        }
+
+        function openTable(tableNumber) {
+            alert(`فتح المنيو لطاولة ${tableNumber}`);
+        }
+
+        function openMenuPopup() {
+            document.getElementById("menuPopup").style.display = "block";
+            loadMenuSections();
+        }
+
+        function closeMenuPopup() {
+            document.getElementById("menuPopup").style.display = "none";
+        }
+
+        function addMenuSection() {
+            let sectionName = prompt("اسم القسم:");
+            if (!sectionName) return;
+            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
+            sections.push({ name: sectionName, items: [] });
+            localStorage.setItem("menuSections", JSON.stringify(sections));
+            loadMenuSections();
+        }
+
+        function loadMenuSections() {
+            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
+            let container = document.getElementById("menuSections");
+            container.innerHTML = "";
+            sections.forEach((section, index) => {
+                let div = document.createElement("div");
+                div.classList.add("menu-section");
+                div.innerHTML = `<strong>${section.name}</strong> <button onclick="addMenuItem(${index})">إضافة صنف</button>`;
+                let itemsContainer = document.createElement("div");
+                section.items.forEach((item, itemIndex) => {
+                    let itemDiv = document.createElement("div");
+                    itemDiv.classList.add("menu-item");
+                    itemDiv.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem(${index}, ${itemIndex})">❌</button>`;
+                    itemsContainer.appendChild(itemDiv);
+                });
+                div.appendChild(itemsContainer);
+                container.appendChild(div);
             });
         }
 
-        function addTable() {
-            let tableId = prompt("أدخل رقم الطاولة:");
-            if (tableId && !tables[tableId]) {
-                tables[tableId] = [];
-                saveData();
-                renderTables();
-            }
+        function addMenuItem(sectionIndex) {
+            let itemName = prompt("اسم الصنف:");
+            let itemPrice = prompt("السعر:");
+            if (!itemName || !itemPrice || isNaN(itemPrice)) return;
+            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
+            sections[sectionIndex].items.push({ name: itemName, price: itemPrice });
+            localStorage.setItem("menuSections", JSON.stringify(sections));
+            loadMenuSections();
         }
 
-        function deleteTable(tableId) {
-            if (confirm(`هل تريد حذف الطاولة ${tableId}؟`)) {
-                delete tables[tableId];
-                saveData();
-                renderTables();
-            }
+        function removeMenuItem(sectionIndex, itemIndex) {
+            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
+            sections[sectionIndex].items.splice(itemIndex, 1);
+            localStorage.setItem("menuSections", JSON.stringify(sections));
+            loadMenuSections();
         }
 
-        function viewOrders(tableId) {
-            let orders = tables[tableId] || [];
-            let orderList = orders.map((o, i) => `
-                <div class="order-item">
-                    ${o.name} ${o.type ? `(${o.type})` : ""} ${o.note ? `- ملاحظة: ${o.note}` : ""}
-                    <button onclick="setOrderType('${tableId}', ${i}, 'اسباجتي')">اسباجتي</button>
-                    <button onclick="setOrderType('${tableId}', ${i}, 'مقصوصة')">مقصوصة</button>
-                    <button class="note-btn" onclick="addNote('${tableId}', ${i})">ملحوظة</button>
-                    <button class="delete" onclick="removeOrder('${tableId}', ${i})">❌</button>
-                </div>
-            `).join("");
-
-            let orderWindow = window.open("", "", "width=500,height=600");
-            orderWindow.document.write(`<h2>طلبات الطاولة ${tableId}</h2>${orderList}`);
-        }
-
-        function addNote(tableId, index) {
-            let note = prompt("أدخل الملاحظة:");
-            if (note) {
-                tables[tableId][index].note = note;
-                saveData();
-                viewOrders(tableId);
-            }
-        }
-
-        function setOrderType(tableId, index, type) {
-            tables[tableId][index].type = type;
-            saveData();
-            viewOrders(tableId);
-        }
-
-        function removeOrder(tableId, index) {
-            tables[tableId].splice(index, 1);
-            saveData();
-            viewOrders(tableId);
-        }
-
-        /* إدارة المنيو */
-        function renderMenu() {
-            let menuDiv = document.getElementById("menu");
-            menuDiv.innerHTML = "";
-            Object.keys(menu).forEach(section => {
-                let sectionDiv = document.createElement("div");
-                sectionDiv.className = "menu-section";
-                sectionDiv.innerHTML = `
-                    <h2>${section} 
-                        <button class="delete" onclick="deleteSection('${section}')">❌ حذف</button>
-                    </h2>
-                    <button class="add-btn" onclick="addItem('${section}')">+ إضافة صنف</button>
-                    <div id="items-${section}"></div>
-                `;
-                menuDiv.appendChild(sectionDiv);
-                renderItems(section);
-            });
-        }
-
-        function renderItems(section) {
-            let itemsDiv = document.getElementById(`items-${section}`);
-            itemsDiv.innerHTML = "";
-            menu[section].forEach(item => {
-                let itemDiv = document.createElement("div");
-                itemDiv.className = "menu-item";
-                itemDiv.innerHTML = `
-                    ${item} 
-                    <button onclick="selectTableForOrder('${item}')">➕ أضف للطاولة</button>
-                `;
-                itemsDiv.appendChild(itemDiv);
-            });
-        }
-
-        function selectTableForOrder(itemName) {
-            let tableId = prompt("أدخل رقم الطاولة:");
-            if (tableId && tables[tableId]) {
-                tables[tableId].push({ name: itemName, type: "", note: "" });
-                saveData();
-                alert(`تمت إضافة ${itemName} إلى الطاولة ${tableId}`);
-            } else {
-                alert("الطاولة غير موجودة!");
-            }
-        }
-
-        function addSection() {
-            let sectionName = prompt("أدخل اسم القسم الجديد:");
-            if (sectionName && !menu[sectionName]) {
-                menu[sectionName] = [];
-                saveData();
-                renderMenu();
-            }
-        }
-
-        function deleteSection(section) {
-            if (confirm(`هل تريد حذف قسم "${section}"؟`)) {
-                delete menu[section];
-                saveData();
-                renderMenu();
-            }
-        }
-
-        function addItem(section) {
-            let itemName = prompt(`أدخل اسم الصنف الجديد في قسم "${section}":`);
-            if (itemName) {
-                menu[section].push(itemName);
-                saveData();
-                renderItems(section);
-            }
-        }
-
-        renderTables();
-        renderMenu();
+        loadTables();
     </script>
 </body>
 </html>
