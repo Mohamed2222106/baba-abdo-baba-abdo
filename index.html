@@ -5,57 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة الطاولات</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            direction: rtl;
-            background-color: #f8f8f8;
-        }
-
-        header {
-            background: #ff6600;
-            color: white;
-            padding: 15px;
-            font-size: 24px;
-        }
-
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            background: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-
-        .table {
-            width: 100px;
-            height: 100px;
-            background: white;
-            border: 2px solid #ff6600;
-            margin: 10px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border-radius: 8px;
-        }
-
-        .order-container {
-            margin-top: 20px;
-        }
-
-        .order-item {
-            background: white;
-            padding: 10px;
-            margin: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; background-color: #f8f8f8; }
+        header { background: #ff6600; color: white; padding: 15px; font-size: 24px; }
+        button { padding: 10px 20px; margin: 5px; background: red; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        .table { width: 100px; height: 100px; background: white; border: 2px solid #ff6600; margin: 10px; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; }
+        .order-item { background: white; padding: 10px; margin: 5px; border: 1px solid #ccc; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
     </style>
 </head>
 <body>
@@ -66,6 +20,7 @@
     <main>
         <button onclick="createTables()">إنشاء طاولات</button>
         <button onclick="openMenuPopup()">إدارة المنيو</button>
+        <button onclick="showAllOrders()">جميع الأصناف المختارة</button>
         <div id="tablesContainer"></div>
     </main>
 
@@ -211,6 +166,10 @@
 
         function closeMenuPopup() {
             document.getElementById("menuPopup").style.display = "none";
+        }
+
+        function showAllOrders() {
+            alert("🚀 سيتم عرض جميع الأصناف المختارة لاحقًا!");
         }
 
         loadTables();
