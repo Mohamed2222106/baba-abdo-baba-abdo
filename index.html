@@ -19,15 +19,6 @@
             color: white;
             padding: 15px;
             font-size: 24px;
-            position: relative;
-        }
-
-        .small-text {
-            position: absolute;
-            left: 10px;
-            top: 5px;
-            font-size: 12px;
-            color: white;
         }
 
         button {
@@ -44,17 +35,6 @@
             opacity: 0.8;
         }
 
-        .selected {
-            background: green !important;
-        }
-
-        #tablesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
-
         .table {
             width: 100px;
             height: 100px;
@@ -68,8 +48,8 @@
             border-radius: 8px;
         }
 
-        /* تصميم نافذة إدارة المنيو */
-        #menuPopup {
+        /* نافذة اختيار الأصناف */
+        #menuPopup, #allOrdersPopup {
             display: none;
             position: fixed;
             top: 50%;
@@ -81,11 +61,6 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             width: 300px;
             text-align: center;
-        }
-
-        #menuPopup .close-btn {
-            background: #ff0000;
-            margin-top: 10px;
         }
 
         .menu-section {
@@ -104,17 +79,29 @@
             justify-content: space-between;
             align-items: center;
         }
+
+        #ordersTable {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        #ordersTable th, #ordersTable td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>بابا عبده</h1>
-        <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
     </header>
 
-    <main id="main-content">
+    <main>
         <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="openMenuPopup()">إدارة المنيو</button>
+        <button onclick="openAllOrders()">جميع الأصناف المختارة</button>
         <div id="tablesContainer"></div>
     </main>
 
@@ -123,7 +110,29 @@
         <h2>إدارة المنيو</h2>
         <button onclick="addMenuSection()">إضافة قسم جديد</button>
         <div id="menuSections"></div>
-        <button class="close-btn" onclick="closeMenuPopup()">إغلاق</button>
+        <button onclick="closeMenuPopup()">إغلاق</button>
+    </div>
+
+    <!-- نافذة اختيار الطلبات من المنيو -->
+    <div id="orderPopup">
+        <h2>اختيار الطلبات</h2>
+        <div id="menuItems"></div>
+        <button onclick="closeOrderPopup()">إغلاق</button>
+    </div>
+
+    <!-- نافذة جميع الطلبات -->
+    <div id="allOrdersPopup">
+        <h2>جميع الطلبات</h2>
+        <table id="ordersTable">
+            <thead>
+                <tr>
+                    <th>الصنف</th>
+                    <th>عدد الطلبات</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+        <button onclick="closeAllOrders()">إغلاق</button>
     </div>
 
     <script>
@@ -149,7 +158,51 @@
         }
 
         function openTable(tableNumber) {
-            alert(`فتح المنيو لطاولة ${tableNumber}`);
+            document.getElementById("orderPopup").style.display = "block";
+            let menuItems = JSON.parse(localStorage.getItem("menuSections")) || [];
+            let container = document.getElementById("menuItems");
+            container.innerHTML = "";
+            menuItems.forEach((section, sectionIndex) => {
+                let div = document.createElement("div");
+                div.classList.add("menu-section");
+                div.innerHTML = `<strong>${section.name}</strong>`;
+                section.items.forEach((item, itemIndex) => {
+                    let button = document.createElement("button");
+                    button.textContent = `${item.name} - ${item.price} جنيه`;
+                    button.onclick = () => addOrder(tableNumber, item.name);
+                    div.appendChild(button);
+                });
+                container.appendChild(div);
+            });
+        }
+
+        function closeOrderPopup() {
+            document.getElementById("orderPopup").style.display = "none";
+        }
+
+        function addOrder(tableNumber, itemName) {
+            let orders = JSON.parse(localStorage.getItem("orders")) || {};
+            if (!orders[itemName]) {
+                orders[itemName] = 0;
+            }
+            orders[itemName]++;
+            localStorage.setItem("orders", JSON.stringify(orders));
+        }
+
+        function openAllOrders() {
+            document.getElementById("allOrdersPopup").style.display = "block";
+            let orders = JSON.parse(localStorage.getItem("orders")) || {};
+            let tableBody = document.querySelector("#ordersTable tbody");
+            tableBody.innerHTML = "";
+            Object.keys(orders).sort().forEach(item => {
+                let row = document.createElement("tr");
+                row.innerHTML = `<td>${item}</td><td>${orders[item]}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+
+        function closeAllOrders() {
+            document.getElementById("allOrdersPopup").style.display = "none";
         }
 
         function openMenuPopup() {
@@ -178,31 +231,14 @@
                 let div = document.createElement("div");
                 div.classList.add("menu-section");
                 div.innerHTML = `<strong>${section.name}</strong> <button onclick="addMenuItem(${index})">إضافة صنف</button>`;
-                let itemsContainer = document.createElement("div");
-                section.items.forEach((item, itemIndex) => {
-                    let itemDiv = document.createElement("div");
-                    itemDiv.classList.add("menu-item");
-                    itemDiv.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem(${index}, ${itemIndex})">❌</button>`;
-                    itemsContainer.appendChild(itemDiv);
-                });
-                div.appendChild(itemsContainer);
                 container.appendChild(div);
             });
         }
 
         function addMenuItem(sectionIndex) {
             let itemName = prompt("اسم الصنف:");
-            let itemPrice = prompt("السعر:");
-            if (!itemName || !itemPrice || isNaN(itemPrice)) return;
             let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
-            sections[sectionIndex].items.push({ name: itemName, price: itemPrice });
-            localStorage.setItem("menuSections", JSON.stringify(sections));
-            loadMenuSections();
-        }
-
-        function removeMenuItem(sectionIndex, itemIndex) {
-            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
-            sections[sectionIndex].items.splice(itemIndex, 1);
+            sections[sectionIndex].items.push({ name: itemName, price: "0" });
             localStorage.setItem("menuSections", JSON.stringify(sections));
             loadMenuSections();
         }
