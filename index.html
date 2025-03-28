@@ -3,229 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بابا عبده</title>
+    <title>إدارة المطعم</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            direction: rtl;
-            margin: 0;
-            padding: 0;
-            background-color: #f8f8f8;
-        }
-        header {
-            background: #ff6600;
-            color: white;
-            padding: 15px;
-            font-size: 24px;
-            position: relative;
-        }
-        .small-text {
-            position: absolute;
-            left: 10px;
-            top: 5px;
-            font-size: 12px;
-            color: white;
-        }
-        button {
-            padding: 10px 20px;
-            margin: 5px;
-            background: red;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        button:hover {
-            opacity: 0.8;
-        }
-        .selected {
-            background: green !important;
-        }
-        #tablesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .table {
-            width: 100px;
-            height: 100px;
-            background: white;
-            border: 2px solid #ff6600;
-            margin: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; background-color: #f8f8f8; }
+        header { background: #ff6600; color: white; padding: 15px; font-size: 24px; }
+        button { padding: 10px 15px; margin: 5px; background: red; color: white; border: none; cursor: pointer; border-radius: 5px; }
+        button:hover { opacity: 0.8; }
+        .table, .category { padding: 10px; margin: 10px; background: white; border: 2px solid #ff6600; cursor: pointer; }
+        #tablesContainer, #menuContainer, #ordersSummary { display: flex; flex-wrap: wrap; justify-content: center; }
+        .order-summary { background: white; padding: 10px; margin: 5px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
-    <header>
-        <h1>بابا عبده</h1>
-        <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
-    </header>
-    <main id="main-content">
+
+<header>إدارة المطعم</header>
+<main id="main-content">
+    <button onclick="createTables()">إنشاء ترابيزات</button>
+    <button onclick="manageMenu()">إدارة المنيو</button>
+    <button onclick="showOrdersSummary()">مجموع الطلبات</button>
+    <div id="tablesContainer"></div>
+</main>
+
+<script>
+// تحميل الشاشة الرئيسية
+function loadHomeScreen() {
+    document.getElementById("main-content").innerHTML = `
         <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="manageMenu()">إدارة المنيو</button>
+        <button onclick="showOrdersSummary()">مجموع الطلبات</button>
         <div id="tablesContainer"></div>
-    </main>
+    `;
+    loadTables();
+}
 
-    <script>
-        function createTables() {
-            let num = prompt("كم عدد الترابيزات؟");
-            if (!num || isNaN(num) || num <= 0) return;
-            localStorage.setItem("numTables", num);
-            loadTables();
-        }
+// إنشاء الطاولات
+function createTables() {
+    let num = prompt("كم عدد الترابيزات؟");
+    if (!num || isNaN(num) || num <= 0) return;
+    localStorage.setItem("numTables", num);
+    loadTables();
+}
 
-        function loadTables() {
-            let num = localStorage.getItem("numTables") || 0;
-            let container = document.getElementById("tablesContainer");
-            container.innerHTML = "";
-            for (let i = 1; i <= num; i++) {
-                let table = document.createElement("div");
-                table.classList.add("table");
-                table.textContent = `طاولة ${i}`;
-                table.setAttribute("data-table", i);
-                table.addEventListener("click", () => openTable(i));
-                container.appendChild(table);
-            }
-        }
+// تحميل الطاولات
+function loadTables() {
+    let num = localStorage.getItem("numTables") || 0;
+    let container = document.getElementById("tablesContainer");
+    container.innerHTML = "";
+    for (let i = 1; i <= num; i++) {
+        let table = document.createElement("div");
+        table.classList.add("table");
+        table.textContent = `طاولة ${i}`;
+        table.setAttribute("data-table", i);
+        table.addEventListener("click", () => openTable(i));
+        container.appendChild(table);
+    }
+}
 
-        function openTable(tableNumber) {
-            localStorage.setItem("currentTable", tableNumber);
-            document.getElementById("main-content").innerHTML = `
-                <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
-                <h3>قائمة الطعام</h3>
-                <div id="menu"></div>
-                <h3>الطلبات</h3>
-                <ul id="ordersList"></ul>
-                <button onclick="clearOrders()">حذف الكل</button>
-                <button onclick="loadHomeScreen()">رجوع</button>
-            `;
-            displayMenu();
-            displayOrders();
-        }
+// فتح الطاولة وإدارة الطلبات
+function openTable(tableNumber) {
+    localStorage.setItem("currentTable", tableNumber);
+    document.getElementById("main-content").innerHTML = `
+        <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
+        <h3>قائمة الطعام</h3>
+        <div id="menu"></div>
+        <h3>الطلبات</h3>
+        <ul id="ordersList"></ul>
+        <button onclick="clearOrders()">حذف الكل</button>
+        <button onclick="loadHomeScreen()">رجوع</button>
+    `;
+    displayMenu();
+    displayOrders();
+}
 
-        function manageMenu() {
-            document.getElementById("main-content").innerHTML = `
-                <h2>إدارة المنيو</h2>
-                <div id="menuSections"></div>
-                <button onclick="addCategory()">إضافة قسم</button>
-                <button onclick="loadHomeScreen()">رجوع</button>
-            `;
-            displayMenuSections();
-        }
+// عرض المنيو حسب الأقسام
+function displayMenu() {
+    let menuDiv = document.getElementById("menu");
+    menuDiv.innerHTML = "";
+    let menu = JSON.parse(localStorage.getItem("menu")) || {};
+    Object.keys(menu).forEach(category => {
+        let section = document.createElement("div");
+        section.innerHTML = `<h4>${category}</h4>`;
+        menu[category].forEach(item => {
+            let button = document.createElement("button");
+            button.textContent = `${item.name} - ${item.price} جنيه`;
+            button.onclick = () => addToOrder(item);
+            section.appendChild(button);
+        });
+        menuDiv.appendChild(section);
+    });
+}
 
-        function addCategory() {
-            let categoryName = prompt("اسم القسم:");
-            if (!categoryName) return;
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            if (menu[categoryName]) {
-                alert("القسم موجود بالفعل!");
-                return;
-            }
-            menu[categoryName] = [];
-            localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
-        }
+// إضافة صنف إلى الطلب
+function addToOrder(item) {
+    let tableNumber = localStorage.getItem("currentTable");
+    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+    orders.push({ ...item, option: "", note: "" });
+    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+    displayOrders();
+}
 
-        function displayMenuSections() {
-            let menuSections = document.getElementById("menuSections");
-            menuSections.innerHTML = "";
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            Object.keys(menu).forEach(category => {
-                let div = document.createElement("div");
-                div.innerHTML = `
-                    <h3>${category} <button onclick="removeCategory('${category}')">❌</button></h3>
-                    <div id="items-${category}"></div>
-                    <button onclick="addMenuItem('${category}')">إضافة صنف</button>
-                `;
-                menuSections.appendChild(div);
-                displayMenuItems(category);
-            });
-        }
+// عرض الطلبات داخل الطاولة
+function displayOrders() {
+    let tableNumber = localStorage.getItem("currentTable");
+    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+    let list = document.getElementById("ordersList");
+    list.innerHTML = "";
+    orders.forEach((item, index) => {
+        let li = document.createElement("li");
+        li.innerHTML = `
+            ${item.name} - ${item.price} جنيه
+            <button onclick="setOption(${index}, 'إسباجتي')">إسباجتي</button>
+            <button onclick="setOption(${index}, 'مقصوصة')">مقصوصة</button>
+            <button onclick="addNote(${index})">${item.note || 'ملحوظة'}</button>
+            <button onclick="removeOrder(${index})">❌</button>
+        `;
+        list.appendChild(li);
+    });
+}
 
-        function removeCategory(category) {
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            delete menu[category];
-            localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuSections();
-        }
+// تحديث خيارات الطلبات
+function setOption(index, option) {
+    let tableNumber = localStorage.getItem("currentTable");
+    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+    orders[index].option = option;
+    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+    displayOrders();
+}
 
-        function addMenuItem(category) {
-            let name = prompt("اسم الصنف:");
-            let price = prompt("السعر:");
-            if (!name || !price || isNaN(price)) return;
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            menu[category].push({ name, price });
-            localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuItems(category);
-        }
+// إضافة ملاحظة
+function addNote(index) {
+    let note = prompt("أدخل ملاحظتك:");
+    if (note !== null) {
+        let tableNumber = localStorage.getItem("currentTable");
+        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+        orders[index].note = note;
+        localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+        displayOrders();
+    }
+}
 
-        function displayMenuItems(category) {
-            let itemsDiv = document.getElementById(`items-${category}`);
-            itemsDiv.innerHTML = "";
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            menu[category].forEach((item, index) => {
-                let div = document.createElement("div");
-                div.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem('${category}', ${index})">❌</button>`;
-                itemsDiv.appendChild(div);
-            });
-        }
+// عرض نافذة مجموع الطلبات
+function showOrdersSummary() {
+    document.getElementById("main-content").innerHTML = `<h2>مجموع الطلبات</h2><div id="ordersSummary"></div><button onclick="loadHomeScreen()">رجوع</button>`;
+    let allOrders = {};
+    let numTables = localStorage.getItem("numTables") || 0;
+    for (let i = 1; i <= numTables; i++) {
+        let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
+        orders.forEach(order => {
+            let key = `${order.name} - ${order.option || ''} ${order.note ? `(${order.note})` : ''}`;
+            allOrders[key] = (allOrders[key] || 0) + 1;
+        });
+    }
+    let summaryDiv = document.getElementById("ordersSummary");
+    summaryDiv.innerHTML = Object.entries(allOrders).map(([name, count]) => `<div class="order-summary">${name}: ${count}</div>`).join('');
+}
 
-        function removeMenuItem(category, index) {
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            menu[category].splice(index, 1);
-            localStorage.setItem("menu", JSON.stringify(menu));
-            displayMenuItems(category);
-        }
+loadHomeScreen();
+</script>
 
-        function displayMenu() {
-            let menuDiv = document.getElementById("menu");
-            menuDiv.innerHTML = "";
-            let menu = JSON.parse(localStorage.getItem("menu")) || {};
-            Object.keys(menu).forEach(category => {
-                let section = document.createElement("div");
-                section.innerHTML = `<h3>${category}</h3>`;
-                menu[category].forEach(item => {
-                    let button = document.createElement("button");
-                    button.textContent = `${item.name} - ${item.price} جنيه`;
-                    button.onclick = () => addToOrder(item);
-                    section.appendChild(button);
-                });
-                menuDiv.appendChild(section);
-            });
-        }
-
-        function addToOrder(item) {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            orders.push(item);
-            localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-            displayOrders();
-        }
-
-        function displayOrders() {
-            let tableNumber = localStorage.getItem("currentTable");
-            let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-            let list = document.getElementById("ordersList");
-            list.innerHTML = orders.map(item => `<li>${item.name} - ${item.price} جنيه</li>`).join("");
-        }
-
-        function clearOrders() {
-            let tableNumber = localStorage.getItem("currentTable");
-            localStorage.removeItem(`orders_${tableNumber}`);
-            displayOrders();
-        }
-
-        function loadHomeScreen() {
-            location.reload();
-        }
-
-        loadTables();
-    </script>
 </body>
 </html>
