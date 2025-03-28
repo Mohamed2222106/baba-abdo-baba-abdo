@@ -5,161 +5,188 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>إدارة المطعم</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; background-color: #f8f8f8; }
-        header { background: #ff6600; color: white; padding: 15px; font-size: 24px; }
-        button { padding: 10px 15px; margin: 5px; background: red; color: white; border: none; cursor: pointer; border-radius: 5px; }
-        button:hover { opacity: 0.8; }
-        .table, .category { padding: 10px; margin: 10px; background: white; border: 2px solid #ff6600; cursor: pointer; }
-        #tablesContainer, #menuContainer, #ordersSummary { display: flex; flex-wrap: wrap; justify-content: center; }
-        .order-summary { background: white; padding: 10px; margin: 5px; border: 1px solid #ccc; }
+        body { font-family: Arial, sans-serif; background-color: #f8f9fa; text-align: center; }
+        h1 { color: #333; }
+        .container { width: 80%; margin: auto; }
+        .section { background: white; padding: 15px; margin: 10px 0; border-radius: 8px; box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); }
+        .menu-section h2, .table-section h2 { color: #007bff; }
+        .menu-item, .order-item, .table-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #ddd; }
+        button { margin: 5px; padding: 10px; border: none; cursor: pointer; border-radius: 5px; }
+        .add-btn { background: #007bff; color: white; }
+        .delete { background: red; color: white; }
+        .note-btn { background: orange; color: white; }
     </style>
 </head>
 <body>
+    <h1>إدارة المطعم</h1>
+    <div class="container">
 
-<header>إدارة المطعم</header>
-<main id="main-content">
-    <button onclick="createTables()">إنشاء ترابيزات</button>
-    <button onclick="manageMenu()">إدارة المنيو</button>
-    <button onclick="showOrdersSummary()">مجموع الطلبات</button>
-    <div id="tablesContainer"></div>
-</main>
+        <!-- إدارة الطاولات -->
+        <div class="section table-section">
+            <h2>🪑 إدارة الطاولات</h2>
+            <button class="add-btn" onclick="addTable()">+ إضافة طاولة جديدة</button>
+            <div id="tables"></div>
+        </div>
 
-<script>
-// تحميل الشاشة الرئيسية
-function loadHomeScreen() {
-    document.getElementById("main-content").innerHTML = `
-        <button onclick="createTables()">إنشاء ترابيزات</button>
-        <button onclick="manageMenu()">إدارة المنيو</button>
-        <button onclick="showOrdersSummary()">مجموع الطلبات</button>
-        <div id="tablesContainer"></div>
-    `;
-    loadTables();
-}
+        <!-- إدارة المنيو -->
+        <div class="section menu-section">
+            <h2>🍽️ إدارة المنيو</h2>
+            <button class="add-btn" onclick="addSection()">+ إضافة قسم جديد</button>
+            <div id="menu"></div>
+        </div>
+    </div>
 
-// إنشاء الطاولات
-function createTables() {
-    let num = prompt("كم عدد الترابيزات؟");
-    if (!num || isNaN(num) || num <= 0) return;
-    localStorage.setItem("numTables", num);
-    loadTables();
-}
+    <script>
+        let menu = JSON.parse(localStorage.getItem("menu")) || {};
+        let tables = JSON.parse(localStorage.getItem("tables")) || {};
 
-// تحميل الطاولات
-function loadTables() {
-    let num = localStorage.getItem("numTables") || 0;
-    let container = document.getElementById("tablesContainer");
-    container.innerHTML = "";
-    for (let i = 1; i <= num; i++) {
-        let table = document.createElement("div");
-        table.classList.add("table");
-        table.textContent = `طاولة ${i}`;
-        table.setAttribute("data-table", i);
-        table.addEventListener("click", () => openTable(i));
-        container.appendChild(table);
-    }
-}
+        function saveData() {
+            localStorage.setItem("menu", JSON.stringify(menu));
+            localStorage.setItem("tables", JSON.stringify(tables));
+        }
 
-// فتح الطاولة وإدارة الطلبات
-function openTable(tableNumber) {
-    localStorage.setItem("currentTable", tableNumber);
-    document.getElementById("main-content").innerHTML = `
-        <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
-        <h3>قائمة الطعام</h3>
-        <div id="menu"></div>
-        <h3>الطلبات</h3>
-        <ul id="ordersList"></ul>
-        <button onclick="clearOrders()">حذف الكل</button>
-        <button onclick="loadHomeScreen()">رجوع</button>
-    `;
-    displayMenu();
-    displayOrders();
-}
+        /* إدارة الطاولات */
+        function renderTables() {
+            let tablesDiv = document.getElementById("tables");
+            tablesDiv.innerHTML = "";
+            Object.keys(tables).forEach(tableId => {
+                let tableDiv = document.createElement("div");
+                tableDiv.className = "table-item";
+                tableDiv.innerHTML = `
+                    <strong>طاولة ${tableId}</strong>
+                    <button onclick="viewOrders('${tableId}')">📜 عرض الطلبات</button>
+                    <button class="delete" onclick="deleteTable('${tableId}')">❌ حذف</button>
+                `;
+                tablesDiv.appendChild(tableDiv);
+            });
+        }
 
-// عرض المنيو حسب الأقسام
-function displayMenu() {
-    let menuDiv = document.getElementById("menu");
-    menuDiv.innerHTML = "";
-    let menu = JSON.parse(localStorage.getItem("menu")) || {};
-    Object.keys(menu).forEach(category => {
-        let section = document.createElement("div");
-        section.innerHTML = `<h4>${category}</h4>`;
-        menu[category].forEach(item => {
-            let button = document.createElement("button");
-            button.textContent = `${item.name} - ${item.price} جنيه`;
-            button.onclick = () => addToOrder(item);
-            section.appendChild(button);
-        });
-        menuDiv.appendChild(section);
-    });
-}
+        function addTable() {
+            let tableId = prompt("أدخل رقم الطاولة:");
+            if (tableId && !tables[tableId]) {
+                tables[tableId] = [];
+                saveData();
+                renderTables();
+            }
+        }
 
-// إضافة صنف إلى الطلب
-function addToOrder(item) {
-    let tableNumber = localStorage.getItem("currentTable");
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-    orders.push({ ...item, option: "", note: "" });
-    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-    displayOrders();
-}
+        function deleteTable(tableId) {
+            if (confirm(`هل تريد حذف الطاولة ${tableId}؟`)) {
+                delete tables[tableId];
+                saveData();
+                renderTables();
+            }
+        }
 
-// عرض الطلبات داخل الطاولة
-function displayOrders() {
-    let tableNumber = localStorage.getItem("currentTable");
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-    let list = document.getElementById("ordersList");
-    list.innerHTML = "";
-    orders.forEach((item, index) => {
-        let li = document.createElement("li");
-        li.innerHTML = `
-            ${item.name} - ${item.price} جنيه
-            <button onclick="setOption(${index}, 'إسباجتي')">إسباجتي</button>
-            <button onclick="setOption(${index}, 'مقصوصة')">مقصوصة</button>
-            <button onclick="addNote(${index})">${item.note || 'ملحوظة'}</button>
-            <button onclick="removeOrder(${index})">❌</button>
-        `;
-        list.appendChild(li);
-    });
-}
+        function viewOrders(tableId) {
+            let orders = tables[tableId] || [];
+            let orderList = orders.map((o, i) => `
+                <div class="order-item">
+                    ${o.name} ${o.type ? `(${o.type})` : ""} ${o.note ? `- ملاحظة: ${o.note}` : ""}
+                    <button onclick="setOrderType('${tableId}', ${i}, 'اسباجتي')">اسباجتي</button>
+                    <button onclick="setOrderType('${tableId}', ${i}, 'مقصوصة')">مقصوصة</button>
+                    <button class="note-btn" onclick="addNote('${tableId}', ${i})">ملحوظة</button>
+                    <button class="delete" onclick="removeOrder('${tableId}', ${i})">❌</button>
+                </div>
+            `).join("");
 
-// تحديث خيارات الطلبات
-function setOption(index, option) {
-    let tableNumber = localStorage.getItem("currentTable");
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-    orders[index].option = option;
-    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-    displayOrders();
-}
+            let orderWindow = window.open("", "", "width=500,height=600");
+            orderWindow.document.write(`<h2>طلبات الطاولة ${tableId}</h2>${orderList}`);
+        }
 
-// إضافة ملاحظة
-function addNote(index) {
-    let note = prompt("أدخل ملاحظتك:");
-    if (note !== null) {
-        let tableNumber = localStorage.getItem("currentTable");
-        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-        orders[index].note = note;
-        localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-        displayOrders();
-    }
-}
+        function addNote(tableId, index) {
+            let note = prompt("أدخل الملاحظة:");
+            if (note) {
+                tables[tableId][index].note = note;
+                saveData();
+                viewOrders(tableId);
+            }
+        }
 
-// عرض نافذة مجموع الطلبات
-function showOrdersSummary() {
-    document.getElementById("main-content").innerHTML = `<h2>مجموع الطلبات</h2><div id="ordersSummary"></div><button onclick="loadHomeScreen()">رجوع</button>`;
-    let allOrders = {};
-    let numTables = localStorage.getItem("numTables") || 0;
-    for (let i = 1; i <= numTables; i++) {
-        let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
-        orders.forEach(order => {
-            let key = `${order.name} - ${order.option || ''} ${order.note ? `(${order.note})` : ''}`;
-            allOrders[key] = (allOrders[key] || 0) + 1;
-        });
-    }
-    let summaryDiv = document.getElementById("ordersSummary");
-    summaryDiv.innerHTML = Object.entries(allOrders).map(([name, count]) => `<div class="order-summary">${name}: ${count}</div>`).join('');
-}
+        function setOrderType(tableId, index, type) {
+            tables[tableId][index].type = type;
+            saveData();
+            viewOrders(tableId);
+        }
 
-loadHomeScreen();
-</script>
+        function removeOrder(tableId, index) {
+            tables[tableId].splice(index, 1);
+            saveData();
+            viewOrders(tableId);
+        }
 
+        /* إدارة المنيو */
+        function renderMenu() {
+            let menuDiv = document.getElementById("menu");
+            menuDiv.innerHTML = "";
+            Object.keys(menu).forEach(section => {
+                let sectionDiv = document.createElement("div");
+                sectionDiv.className = "menu-section";
+                sectionDiv.innerHTML = `
+                    <h2>${section} 
+                        <button class="delete" onclick="deleteSection('${section}')">❌ حذف</button>
+                    </h2>
+                    <button class="add-btn" onclick="addItem('${section}')">+ إضافة صنف</button>
+                    <div id="items-${section}"></div>
+                `;
+                menuDiv.appendChild(sectionDiv);
+                renderItems(section);
+            });
+        }
+
+        function renderItems(section) {
+            let itemsDiv = document.getElementById(`items-${section}`);
+            itemsDiv.innerHTML = "";
+            menu[section].forEach(item => {
+                let itemDiv = document.createElement("div");
+                itemDiv.className = "menu-item";
+                itemDiv.innerHTML = `
+                    ${item} 
+                    <button onclick="selectTableForOrder('${item}')">➕ أضف للطاولة</button>
+                `;
+                itemsDiv.appendChild(itemDiv);
+            });
+        }
+
+        function selectTableForOrder(itemName) {
+            let tableId = prompt("أدخل رقم الطاولة:");
+            if (tableId && tables[tableId]) {
+                tables[tableId].push({ name: itemName, type: "", note: "" });
+                saveData();
+                alert(`تمت إضافة ${itemName} إلى الطاولة ${tableId}`);
+            } else {
+                alert("الطاولة غير موجودة!");
+            }
+        }
+
+        function addSection() {
+            let sectionName = prompt("أدخل اسم القسم الجديد:");
+            if (sectionName && !menu[sectionName]) {
+                menu[sectionName] = [];
+                saveData();
+                renderMenu();
+            }
+        }
+
+        function deleteSection(section) {
+            if (confirm(`هل تريد حذف قسم "${section}"؟`)) {
+                delete menu[section];
+                saveData();
+                renderMenu();
+            }
+        }
+
+        function addItem(section) {
+            let itemName = prompt(`أدخل اسم الصنف الجديد في قسم "${section}":`);
+            if (itemName) {
+                menu[section].push(itemName);
+                saveData();
+                renderItems(section);
+            }
+        }
+
+        renderTables();
+        renderMenu();
+    </script>
 </body>
 </html>
