@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>بابا عبده</title>
+    <title>إدارة الطاولات</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
             direction: rtl;
-            margin: 0;
-            padding: 0;
             background-color: #f8f8f8;
         }
 
@@ -31,113 +29,72 @@
             border-radius: 5px;
         }
 
-        button:hover {
-            opacity: 0.8;
-        }
-
         .table {
             width: 100px;
             height: 100px;
             background: white;
             border: 2px solid #ff6600;
             margin: 10px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             border-radius: 8px;
         }
 
-        /* نافذة اختيار الأصناف */
-        #menuPopup, #allOrdersPopup {
-            display: none;
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
+        .order-container {
+            margin-top: 20px;
         }
 
-        .menu-section {
-            background: #f1f1f1;
+        .order-item {
+            background: white;
             padding: 10px;
             margin: 5px;
-            border-radius: 8px;
-        }
-
-        .menu-item {
-            background: white;
-            padding: 5px;
-            margin: 3px;
+            border: 1px solid #ccc;
             border-radius: 5px;
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
-        #ordersTable {
-            width: 100%;
-            margin-top: 20px;
-            border-collapse: collapse;
-        }
-
-        #ordersTable th, #ordersTable td {
-            border: 1px solid black;
-            padding: 10px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
     <header>
-        <h1>بابا عبده</h1>
+        <h1>إدارة الطاولات</h1>
     </header>
 
     <main>
-        <button onclick="createTables()">إنشاء ترابيزات</button>
+        <button onclick="createTables()">إنشاء طاولات</button>
         <button onclick="openMenuPopup()">إدارة المنيو</button>
-        <button onclick="openAllOrders()">جميع الأصناف المختارة</button>
         <div id="tablesContainer"></div>
     </main>
 
     <!-- نافذة إدارة المنيو -->
-    <div id="menuPopup">
+    <div id="menuPopup" style="display: none;">
         <h2>إدارة المنيو</h2>
         <button onclick="addMenuSection()">إضافة قسم جديد</button>
         <div id="menuSections"></div>
         <button onclick="closeMenuPopup()">إغلاق</button>
     </div>
 
-    <!-- نافذة اختيار الطلبات من المنيو -->
-    <div id="orderPopup">
-        <h2>اختيار الطلبات</h2>
+    <!-- نافذة اختيار الأصناف -->
+    <div id="menuSelectionPopup" style="display: none;">
+        <h2>اختر صنفًا</h2>
         <div id="menuItems"></div>
-        <button onclick="closeOrderPopup()">إغلاق</button>
+        <button onclick="closeMenuSelection()">إغلاق</button>
     </div>
 
-    <!-- نافذة جميع الطلبات -->
-    <div id="allOrdersPopup">
-        <h2>جميع الطلبات</h2>
-        <table id="ordersTable">
-            <thead>
-                <tr>
-                    <th>الصنف</th>
-                    <th>عدد الطلبات</th>
-                </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
-        <button onclick="closeAllOrders()">إغلاق</button>
+    <!-- صفحة الطاولة -->
+    <div id="tablePage" style="display: none;">
+        <h2 id="tableTitle"></h2>
+        <div id="orderList"></div>
+        <h3>المجموع: <span id="totalPrice">0</span> جنيه</h3>
+        <button onclick="closeTablePage()">إغلاق</button>
     </div>
 
     <script>
         function createTables() {
-            let num = prompt("كم عدد الترابيزات؟");
+            let num = prompt("كم عدد الطاولات؟");
             if (!num || isNaN(num) || num <= 0) return;
             localStorage.setItem("numTables", num);
             loadTables();
@@ -158,89 +115,102 @@
         }
 
         function openTable(tableNumber) {
-            document.getElementById("orderPopup").style.display = "block";
+            document.getElementById("tablePage").style.display = "block";
+            document.getElementById("tableTitle").textContent = `طاولة ${tableNumber}`;
+            document.getElementById("orderList").innerHTML = "";
+            let orders = JSON.parse(localStorage.getItem(`table_${tableNumber}`)) || [];
+            updateTableOrders(tableNumber, orders);
+        }
+
+        function closeTablePage() {
+            document.getElementById("tablePage").style.display = "none";
+        }
+
+        function openMenuSelection(tableNumber) {
+            document.getElementById("menuSelectionPopup").style.display = "block";
             let menuItems = JSON.parse(localStorage.getItem("menuSections")) || [];
             let container = document.getElementById("menuItems");
             container.innerHTML = "";
-            menuItems.forEach((section, sectionIndex) => {
+            menuItems.forEach((section) => {
                 let div = document.createElement("div");
-                div.classList.add("menu-section");
                 div.innerHTML = `<strong>${section.name}</strong>`;
-                section.items.forEach((item, itemIndex) => {
+                section.items.forEach((item) => {
                     let button = document.createElement("button");
                     button.textContent = `${item.name} - ${item.price} جنيه`;
-                    button.onclick = () => addOrder(tableNumber, item.name);
+                    button.onclick = () => addOrder(tableNumber, item.name, item.price);
                     div.appendChild(button);
                 });
                 container.appendChild(div);
             });
         }
 
-        function closeOrderPopup() {
-            document.getElementById("orderPopup").style.display = "none";
+        function closeMenuSelection() {
+            document.getElementById("menuSelectionPopup").style.display = "none";
         }
 
-        function addOrder(tableNumber, itemName) {
-            let orders = JSON.parse(localStorage.getItem("orders")) || {};
-            if (!orders[itemName]) {
-                orders[itemName] = 0;
-            }
-            orders[itemName]++;
-            localStorage.setItem("orders", JSON.stringify(orders));
+        function addOrder(tableNumber, itemName, price) {
+            let orders = JSON.parse(localStorage.getItem(`table_${tableNumber}`)) || [];
+            orders.push({ name: itemName, price: parseFloat(price), note: "", extra: null });
+            localStorage.setItem(`table_${tableNumber}`, JSON.stringify(orders));
+            updateTableOrders(tableNumber, orders);
+            closeMenuSelection();
         }
 
-        function openAllOrders() {
-            document.getElementById("allOrdersPopup").style.display = "block";
-            let orders = JSON.parse(localStorage.getItem("orders")) || {};
-            let tableBody = document.querySelector("#ordersTable tbody");
-            tableBody.innerHTML = "";
-            Object.keys(orders).sort().forEach(item => {
-                let row = document.createElement("tr");
-                row.innerHTML = `<td>${item}</td><td>${orders[item]}</td>`;
-                tableBody.appendChild(row);
+        function updateTableOrders(tableNumber, orders) {
+            let orderList = document.getElementById("orderList");
+            orderList.innerHTML = "";
+            let totalPrice = 0;
+
+            orders.forEach((order, index) => {
+                totalPrice += order.price;
+                let div = document.createElement("div");
+                div.classList.add("order-item");
+                div.innerHTML = `
+                    ${order.name} ${order.extra ? `+ ${order.extra}` : ""}
+                    (${order.price} جنيه)
+                    <button onclick="addExtra(${tableNumber}, ${index})">إضافة صنف</button>
+                    <button onclick="addNote(${tableNumber}, ${index})">ملحوظة</button>
+                `;
+                orderList.appendChild(div);
+            });
+
+            document.getElementById("totalPrice").textContent = totalPrice;
+        }
+
+        function addExtra(tableNumber, index) {
+            openMenuSelection(tableNumber);
+            let menuItems = JSON.parse(localStorage.getItem("menuSections")) || [];
+            menuItems.forEach((section) => {
+                section.items.forEach((item) => {
+                    item.onclick = () => {
+                        let orders = JSON.parse(localStorage.getItem(`table_${tableNumber}`)) || [];
+                        orders[index].extra = item.name;
+                        orders[index].price += parseFloat(item.price);
+                        localStorage.setItem(`table_${tableNumber}`, JSON.stringify(orders));
+                        updateTableOrders(tableNumber, orders);
+                    };
+                });
             });
         }
 
-        function closeAllOrders() {
-            document.getElementById("allOrdersPopup").style.display = "none";
+        function addNote(tableNumber, index) {
+            let choice = prompt("اختر: 1- إسباجتي | 2- مقصوصة");
+            if (choice == "1") choice = "إسباجتي";
+            else if (choice == "2") choice = "مقصوصة";
+            else return;
+
+            let orders = JSON.parse(localStorage.getItem(`table_${tableNumber}`)) || [];
+            orders[index].note = choice;
+            localStorage.setItem(`table_${tableNumber}`, JSON.stringify(orders));
+            updateTableOrders(tableNumber, orders);
         }
 
         function openMenuPopup() {
             document.getElementById("menuPopup").style.display = "block";
-            loadMenuSections();
         }
 
         function closeMenuPopup() {
             document.getElementById("menuPopup").style.display = "none";
-        }
-
-        function addMenuSection() {
-            let sectionName = prompt("اسم القسم:");
-            if (!sectionName) return;
-            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
-            sections.push({ name: sectionName, items: [] });
-            localStorage.setItem("menuSections", JSON.stringify(sections));
-            loadMenuSections();
-        }
-
-        function loadMenuSections() {
-            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
-            let container = document.getElementById("menuSections");
-            container.innerHTML = "";
-            sections.forEach((section, index) => {
-                let div = document.createElement("div");
-                div.classList.add("menu-section");
-                div.innerHTML = `<strong>${section.name}</strong> <button onclick="addMenuItem(${index})">إضافة صنف</button>`;
-                container.appendChild(div);
-            });
-        }
-
-        function addMenuItem(sectionIndex) {
-            let itemName = prompt("اسم الصنف:");
-            let sections = JSON.parse(localStorage.getItem("menuSections")) || [];
-            sections[sectionIndex].items.push({ name: itemName, price: "0" });
-            localStorage.setItem("menuSections", JSON.stringify(sections));
-            loadMenuSections();
         }
 
         loadTables();
