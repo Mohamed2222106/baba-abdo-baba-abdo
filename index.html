@@ -6,11 +6,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            direction: rtl;
             text-align: center;
-            background-color: #f8f8f8;
+            direction: rtl;
             margin: 0;
             padding: 0;
+            background-color: #f8f8f8;
         }
         header {
             background: #ff6600;
@@ -41,6 +41,12 @@
         .selected {
             background: green !important;
         }
+        #tablesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
         .table {
             width: 100px;
             height: 100px;
@@ -62,7 +68,7 @@
     <main id="main-content">
         <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="manageMenu()">إدارة المنيو</button>
-        <button onclick="showAllOrders()">عرض كل الطلبات</button>
+        <button onclick="viewAllOrders()">عرض كل الطلبات</button>
         <div id="tablesContainer"></div>
     </main>
     <script>
@@ -85,78 +91,49 @@
         }
     }
 
-    function openTable(tableNumber) {
-        localStorage.setItem("currentTable", tableNumber);
+    function manageMenu() {
         document.getElementById("main-content").innerHTML = `
-            <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
-            <button onclick="manageMenu()">إضافة صنف</button>
-            <ul id="ordersList"></ul>
-            <button onclick="clearOrders(${tableNumber})">حذف الكل</button>
+            <h2>إدارة المنيو</h2>
+            <div id="menuList"></div>
+            <button onclick="addMenuItem()">إضافة صنف</button>
             <button onclick="loadHomeScreen()">رجوع</button>
         `;
-        displayOrders(tableNumber);
+        displayMenuItems();
     }
 
-    function manageMenu() {
-        let item = prompt("أدخل اسم الصنف والسعر (مثال: مكرونة - 50)");
-        if (!item) return;
+    function addMenuItem() {
+        let name = prompt("اسم الصنف:");
+        let price = prompt("السعر:");
+        if (!name || !price || isNaN(price)) return;
         let menu = JSON.parse(localStorage.getItem("menu")) || [];
-        menu.push(item);
+        menu.push({ name, price });
         localStorage.setItem("menu", JSON.stringify(menu));
+        displayMenuItems();
     }
 
-    function displayOrders(tableNumber) {
-        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-        let list = document.getElementById("ordersList");
-        list.innerHTML = "";
-        orders.forEach((item, index) => {
-            let li = document.createElement("li");
-            li.innerHTML = `${item} <button onclick="removeOrder(${tableNumber}, ${index})">❌</button>`;
-            list.appendChild(li);
+    function displayMenuItems() {
+        let menuList = document.getElementById("menuList");
+        menuList.innerHTML = "";
+        let menu = JSON.parse(localStorage.getItem("menu")) || [];
+        menu.forEach((item, index) => {
+            let div = document.createElement("div");
+            div.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem(${index})">❌</button>`;
+            menuList.appendChild(div);
         });
     }
 
-    function removeOrder(tableNumber, index) {
-        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
-        orders.splice(index, 1);
-        localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
-        displayOrders(tableNumber);
-    }
-
-    function showAllOrders() {
-        document.getElementById("main-content").innerHTML = `<h2>كل الطلبات</h2><ul id="allOrdersList"></ul><button onclick="clearAllOrders()">حذف الكل</button><button onclick="loadHomeScreen()">رجوع</button>`;
-        let allOrders = {};
-        let tables = localStorage.getItem("numTables") || 0;
-        for (let i = 1; i <= tables; i++) {
-            let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
-            orders.forEach(order => {
-                if (!allOrders[order]) {
-                    allOrders[order] = [];
-                }
-                allOrders[order].push(i);
-            });
-        }
-        let list = document.getElementById("allOrdersList");
-        for (let item in allOrders) {
-            let li = document.createElement("li");
-            li.innerHTML = `${item} - موجود في الطاولات: ${allOrders[item].join(", ")}`;
-            list.appendChild(li);
-        }
-    }
-
-    function clearAllOrders() {
-        let tables = localStorage.getItem("numTables") || 0;
-        for (let i = 1; i <= tables; i++) {
-            localStorage.removeItem(`orders_${i}`);
-        }
-        showAllOrders();
+    function removeMenuItem(index) {
+        let menu = JSON.parse(localStorage.getItem("menu")) || [];
+        menu.splice(index, 1);
+        localStorage.setItem("menu", JSON.stringify(menu));
+        displayMenuItems();
     }
 
     function loadHomeScreen() {
         document.getElementById("main-content").innerHTML = `
             <button onclick="createTables()">إنشاء ترابيزات</button>
             <button onclick="manageMenu()">إدارة المنيو</button>
-            <button onclick="showAllOrders()">عرض كل الطلبات</button>
+            <button onclick="viewAllOrders()">عرض كل الطلبات</button>
             <div id="tablesContainer"></div>
         `;
         loadTables();
