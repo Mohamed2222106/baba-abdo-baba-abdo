@@ -6,11 +6,11 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
             direction: rtl;
+            text-align: center;
+            background-color: #f8f8f8;
             margin: 0;
             padding: 0;
-            background-color: #f8f8f8;
         }
         header {
             background: #ff6600;
@@ -41,12 +41,6 @@
         .selected {
             background: green !important;
         }
-        #tablesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
         .table {
             width: 100px;
             height: 100px;
@@ -58,20 +52,6 @@
             justify-content: center;
             cursor: pointer;
         }
-        ul {
-            list-style: none;
-            padding: 0;
-        }
-        ul li {
-            background: white;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-        }
     </style>
 </head>
 <body>
@@ -82,47 +62,104 @@
     <main id="main-content">
         <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="manageMenu()">إدارة المنيو</button>
-        <button onclick="showAggregatedOrders()">عرض الطلبات المجمعة</button>
+        <button onclick="showAllOrders()">عرض كل الطلبات</button>
         <div id="tablesContainer"></div>
     </main>
     <script>
-        function loadHomeScreen() {
-            document.getElementById("main-content").innerHTML = `
-                <button onclick="createTables()">إنشاء ترابيزات</button>
-                <button onclick="manageMenu()">إدارة المنيو</button>
-                <button onclick="showAggregatedOrders()">عرض الطلبات المجمعة</button>
-                <div id="tablesContainer"></div>
-            `;
+        function createTables() {
+            let num = prompt("كم عدد الترابيزات؟");
+            if (!num || isNaN(num) || num <= 0) return;
+            localStorage.setItem("numTables", num);
             loadTables();
-        }function showAggregatedOrders() {
-        let aggregatedOrders = {};
-        let numTables = localStorage.getItem("numTables") || 0;
-        for (let i = 1; i <= numTables; i++) {
-            let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
-            orders.forEach(order => {
-                if (!aggregatedOrders[order.name]) {
-                    aggregatedOrders[order.name] = { count: 0, options: { "إسباجتي": 0, "مقصوصة": 0, "بدون": 0 } };
-                }
-                aggregatedOrders[order.name].count++;
-                aggregatedOrders[order.name].options[order.option || "بدون"]++;
-            });
+        }function loadTables() {
+        let num = localStorage.getItem("numTables") || 0;
+        let container = document.getElementById("tablesContainer");
+        container.innerHTML = "";
+        for (let i = 1; i <= num; i++) {
+            let table = document.createElement("div");
+            table.classList.add("table");
+            table.textContent = `طاولة ${i}`;
+            table.setAttribute("data-table", i);
+            table.addEventListener("click", () => openTable(i));
+            container.appendChild(table);
         }
-
-        let content = '<h2>الطلبات المجمعة</h2><ul>';
-        for (let item in aggregatedOrders) {
-            content += `<li>${item} - عدد الطلبات: ${aggregatedOrders[item].count}<br>
-                        إسباجتي: ${aggregatedOrders[item].options["إسباجتي"]}, 
-                        مقصوصة: ${aggregatedOrders[item].options["مقصوصة"]}, 
-                        بدون: ${aggregatedOrders[item].options["بدون"]}
-                    </li>`;
-        }
-        content += '</ul><button onclick="clearAggregatedOrders()">حذف الكل</button><button onclick="loadHomeScreen()">رجوع</button>';
-        document.getElementById("main-content").innerHTML = content;
     }
 
-    function clearAggregatedOrders() {
-        localStorage.removeItem("aggregatedOrders");
-        showAggregatedOrders();
+    function openTable(tableNumber) {
+        localStorage.setItem("currentTable", tableNumber);
+        document.getElementById("main-content").innerHTML = `
+            <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
+            <button onclick="manageMenu()">إضافة صنف</button>
+            <ul id="ordersList"></ul>
+            <button onclick="clearOrders(${tableNumber})">حذف الكل</button>
+            <button onclick="loadHomeScreen()">رجوع</button>
+        `;
+        displayOrders(tableNumber);
+    }
+
+    function manageMenu() {
+        let item = prompt("أدخل اسم الصنف والسعر (مثال: مكرونة - 50)");
+        if (!item) return;
+        let menu = JSON.parse(localStorage.getItem("menu")) || [];
+        menu.push(item);
+        localStorage.setItem("menu", JSON.stringify(menu));
+    }
+
+    function displayOrders(tableNumber) {
+        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+        let list = document.getElementById("ordersList");
+        list.innerHTML = "";
+        orders.forEach((item, index) => {
+            let li = document.createElement("li");
+            li.innerHTML = `${item} <button onclick="removeOrder(${tableNumber}, ${index})">❌</button>`;
+            list.appendChild(li);
+        });
+    }
+
+    function removeOrder(tableNumber, index) {
+        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];
+        orders.splice(index, 1);
+        localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));
+        displayOrders(tableNumber);
+    }
+
+    function showAllOrders() {
+        document.getElementById("main-content").innerHTML = `<h2>كل الطلبات</h2><ul id="allOrdersList"></ul><button onclick="clearAllOrders()">حذف الكل</button><button onclick="loadHomeScreen()">رجوع</button>`;
+        let allOrders = {};
+        let tables = localStorage.getItem("numTables") || 0;
+        for (let i = 1; i <= tables; i++) {
+            let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
+            orders.forEach(order => {
+                if (!allOrders[order]) {
+                    allOrders[order] = [];
+                }
+                allOrders[order].push(i);
+            });
+        }
+        let list = document.getElementById("allOrdersList");
+        for (let item in allOrders) {
+            let li = document.createElement("li");
+            li.innerHTML = `${item} - موجود في الطاولات: ${allOrders[item].join(", ")}`;
+            list.appendChild(li);
+        }
+    }
+
+    function clearAllOrders() {
+        let tables = localStorage.getItem("numTables") || 0;
+        for (let i = 1; i <= tables; i++) {
+            localStorage.removeItem(`orders_${i}`);
+        }
+        showAllOrders();
+    }
+
+    function loadHomeScreen() {
+        document.getElementById("main-content").innerHTML = `
+            <button onclick="createTables()">إنشاء ترابيزات</button>
+            <button onclick="manageMenu()">إدارة المنيو</button>
+            <button onclick="showAllOrders()">عرض كل الطلبات</button>
+            <div id="tablesContainer"></div>
+        `;
+        loadTables();
     }
 
     loadHomeScreen();
