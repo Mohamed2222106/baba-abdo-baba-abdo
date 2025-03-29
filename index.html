@@ -8,70 +8,124 @@
             font-family: Arial, sans-serif;
             text-align: center;
             direction: rtl;
+            margin: 0;
+            padding: 0;
             background-color: #f8f8f8;
         }
-        .order-summary {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: auto;
-            text-align: center;
+        header {
+            background: #ff6600;
+            color: white;
+            padding: 15px;
+            font-size: 24px;
+            position: relative;
         }
-        .order-summary ul {
+        .small-text {
+            position: absolute;
+            left: 10px;
+            top: 5px;
+            font-size: 12px;
+            color: white;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: red;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            opacity: 0.8;
+        }
+        .selected {
+            background: green !important;
+        }
+        #tablesContainer {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .table {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border: 2px solid #ff6600;
+            margin: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        ul {
             list-style: none;
             padding: 0;
         }
-        .order-summary li {
-            background: #f4f4f4;
+        ul li {
+            background: white;
             padding: 10px;
-            margin: 5px 0;
+            margin: 5px;
             border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
         }
     </style>
 </head>
 <body>
     <header>
         <h1>بابا عبده</h1>
+        <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
     </header>
     <main id="main-content">
-        <button onclick="loadHomeScreen()">الصفحة الرئيسية</button>
-        <button onclick="showOrderSummary()">تجميع الطلبات</button>
-        <div id="content"></div>
+        <button onclick="createTables()">إنشاء ترابيزات</button>
+        <button onclick="manageMenu()">إدارة المنيو</button>
+        <button onclick="showAggregatedOrders()">عرض الطلبات المجمعة</button>
+        <div id="tablesContainer"></div>
     </main>
     <script>
-        function showOrderSummary() {
-            let allOrders = {};
-            let tableCount = localStorage.getItem("numTables") || 0;
-            for (let i = 1; i <= tableCount; i++) {
-                let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
-                orders.forEach(order => {
-                    let key = `${order.name} - ${order.price} جنيه`;
-                    if (!allOrders[key]) {
-                        allOrders[key] = { count: 0, espagetti: 0, maqsoosa: 0, plain: 0 };
-                    }
-                    allOrders[key].count++;
-                    if (order.option === "إسباجتي") allOrders[key].espagetti++;
-                    else if (order.option === "مقصوصة") allOrders[key].maqsoosa++;
-                    else allOrders[key].plain++;
-                });
-            }
-            let contentDiv = document.getElementById("content");
-            contentDiv.innerHTML = `<div class="order-summary">
-                <h2>تجميع الطلبات</h2>
-                <ul id="summary-list"></ul>
-                <button onclick="clearOrderSummary()">حذف الكل</button>
-            </div>`;
-            let summaryList = document.getElementById("summary-list");
-            for (let item in allOrders) {
-                let li = document.createElement("li");
-                li.textContent = `${item} - العدد: ${allOrders[item].count} (إسباجتي: ${allOrders[item].espagetti}, مقصوصة: ${allOrders[item].maqsoosa}, بدون: ${allOrders[item].plain})`;
-                summaryList.appendChild(li);
-            }
-        }function clearOrderSummary() {
-        document.getElementById("content").innerHTML = "";
+        function loadHomeScreen() {
+            document.getElementById("main-content").innerHTML = `
+                <button onclick="createTables()">إنشاء ترابيزات</button>
+                <button onclick="manageMenu()">إدارة المنيو</button>
+                <button onclick="showAggregatedOrders()">عرض الطلبات المجمعة</button>
+                <div id="tablesContainer"></div>
+            `;
+            loadTables();
+        }function showAggregatedOrders() {
+        let aggregatedOrders = {};
+        let numTables = localStorage.getItem("numTables") || 0;
+        for (let i = 1; i <= numTables; i++) {
+            let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
+            orders.forEach(order => {
+                if (!aggregatedOrders[order.name]) {
+                    aggregatedOrders[order.name] = { count: 0, options: { "إسباجتي": 0, "مقصوصة": 0, "بدون": 0 } };
+                }
+                aggregatedOrders[order.name].count++;
+                aggregatedOrders[order.name].options[order.option || "بدون"]++;
+            });
+        }
+
+        let content = '<h2>الطلبات المجمعة</h2><ul>';
+        for (let item in aggregatedOrders) {
+            content += `<li>${item} - عدد الطلبات: ${aggregatedOrders[item].count}<br>
+                        إسباجتي: ${aggregatedOrders[item].options["إسباجتي"]}, 
+                        مقصوصة: ${aggregatedOrders[item].options["مقصوصة"]}, 
+                        بدون: ${aggregatedOrders[item].options["بدون"]}
+                    </li>`;
+        }
+        content += '</ul><button onclick="clearAggregatedOrders()">حذف الكل</button><button onclick="loadHomeScreen()">رجوع</button>';
+        document.getElementById("main-content").innerHTML = content;
     }
+
+    function clearAggregatedOrders() {
+        localStorage.removeItem("aggregatedOrders");
+        showAggregatedOrders();
+    }
+
+    loadHomeScreen();
 </script>
 
 </body>
