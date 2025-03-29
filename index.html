@@ -1,282 +1,78 @@
-<!DOCTYPE html>  <html lang="ar">    <head>    <meta charset="UTF-8">    
-<meta name="viewport" content="width=device-width, initial-scale=1.0">    
-<title>بابا عبده</title>    
-<style>    
-    body {    
-        font-family: Arial, sans-serif;    
-        text-align: center;    
-        direction: rtl;    
-        margin: 0;    
-        padding: 0;    
-        background-color: #f8f8f8;    
-    }  header {
+<!DOCTYPE html><html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>بابا عبده</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: rtl;
+            background-color: #f8f8f8;
+        }
+        .order-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+        }
+        .order-summary ul {
+            list-style: none;
+            padding: 0;
+        }
+        .order-summary li {
+            background: #f4f4f4;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>بابا عبده</h1>
+    </header>
+    <main id="main-content">
+        <button onclick="loadHomeScreen()">الصفحة الرئيسية</button>
+        <button onclick="showOrderSummary()">تجميع الطلبات</button>
+        <div id="content"></div>
+    </main>
+    <script>
+        function showOrderSummary() {
+            let allOrders = {};
+            let tableCount = localStorage.getItem("numTables") || 0;
+            for (let i = 1; i <= tableCount; i++) {
+                let orders = JSON.parse(localStorage.getItem(`orders_${i}`)) || [];
+                orders.forEach(order => {
+                    let key = `${order.name} - ${order.price} جنيه`;
+                    if (!allOrders[key]) {
+                        allOrders[key] = { count: 0, espagetti: 0, maqsoosa: 0, plain: 0 };
+                    }
+                    allOrders[key].count++;
+                    if (order.option === "إسباجتي") allOrders[key].espagetti++;
+                    else if (order.option === "مقصوصة") allOrders[key].maqsoosa++;
+                    else allOrders[key].plain++;
+                });
+            }
+            let contentDiv = document.getElementById("content");
+            contentDiv.innerHTML = `<div class="order-summary">
+                <h2>تجميع الطلبات</h2>
+                <ul id="summary-list"></ul>
+                <button onclick="clearOrderSummary()">حذف الكل</button>
+            </div>`;
+            let summaryList = document.getElementById("summary-list");
+            for (let item in allOrders) {
+                let li = document.createElement("li");
+                li.textContent = `${item} - العدد: ${allOrders[item].count} (إسباجتي: ${allOrders[item].espagetti}, مقصوصة: ${allOrders[item].maqsoosa}, بدون: ${allOrders[item].plain})`;
+                summaryList.appendChild(li);
+            }
+        }function clearOrderSummary() {
+        document.getElementById("content").innerHTML = "";
+    }
+</script>
 
-background: #ff6600;
-color: white;
-padding: 15px;
-font-size: 24px;
-position: relative;  }
-
-.small-text {
-position: absolute;
-left: 10px;
-top: 5px;
-font-size: 12px;
-color: white;
-}
-
-button {
-padding: 10px 20px;
-margin: 5px;
-background: red;
-color: white;
-border: none;
-cursor: pointer;
-border-radius: 5px;
-}
-
-button:hover {
-opacity: 0.8;
-}
-
-.selected {
-background: green !important;
-}
-
-#tablesContainer {
-display: flex;
-flex-wrap: wrap;
-justify-content: center;
-margin-top: 20px;
-}
-
-.table {
-width: 100px;
-height: 100px;
-background: white;
-border: 2px solid #ff6600;
-margin: 10px;
-display: flex;
-align-items: center;
-justify-content: center;
-cursor: pointer;
-}
-
-ul {
-list-style: none;
-padding: 0;
-}
-
-ul li {
-background: white;
-padding: 10px;
-margin: 5px;
-border-radius: 5px;
-display: flex;
-justify-content: space-between;
-align-items: center;
-flex-wrap: wrap;
-}
-
-button {
-
-padding: 10px 20px; margin: 5px; background: #ADD8E6; /* اللون اللبني */ color: white; border: none; cursor: pointer; border-radius: 5px;
-
-}
-
-button:hover { opacity: 0.8; }
-
-/* تنسيق عام للصفحة */
-
-body { font-family: Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 0; }
-
-/* ترويسة التطبيق */ .header { background-color: #007bff; color: white; text-align: center; padding: 15px; font-size: 20px; font-weight: bold; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
-
-/* تصميم الأزرار / button { padding: 12px 20px; margin: 5px; background: #ADD8E6; / اللون اللبني */ color: white; border: none; cursor: pointer; border-radius: 8px; font-size: 16px; transition: 0.3s; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); }
-
-button:hover { background: #0056b3; transform: scale(1.05); }
-
-/* تصميم الطاولات */ .table-container { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; }
-
-.table { background: white; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); text-align: center; cursor: pointer; transition: 0.3s; width: 150px; }
-
-.table:hover { background: #ddd; transform: scale(1.05); }
-
-/* تصميم نافذة إدارة المنيو */ .menu-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); max-width: 400px; margin: auto; text-align: center; }
-
-/* تصميم الطلبات */ .order-list { list-style: none; padding: 0; }
-
-.order-list li { background: white; padding: 10px; margin: 5px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); }
-
-/* تصميم الرسائل */ .message { background: #28a745; color: white; padding: 10px; border-radius: 5px; text-align: center; margin-top: 10px; }
-
-</style>  </head>
-
-<body>    
-    <header>    
-        <h1>بابا عبده</h1>    
-        <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>    
-    </header>  <main id="main-content">    
-    <button onclick="createTables()">إنشاء ترابيزات</button>    
-    <button onclick="manageMenu()">إدارة المنيو</button>    
-    <div id="tablesContainer"></div>    
-</main>    <script>    
-    function loadHomeScreen() {    
-        document.getElementById("main-content").innerHTML = `    
-            <button onclick="createTables()">إنشاء ترابيزات</button>    
-            <button onclick="manageMenu()">إدارة المنيو</button>    
-            <div id="tablesContainer"></div>    
-        `;    
-        loadTables();    
-    }    function createTables() {    
-    let num = prompt("كم عدد الترابيزات؟");    
-    if (!num || isNaN(num) || num <= 0) return;    
-    localStorage.setItem("numTables", num);    
-    loadTables();    
-}    
-
-function loadTables() {    
-    let num = localStorage.getItem("numTables") || 0;    
-    let container = document.getElementById("tablesContainer");    
-    container.innerHTML = "";    
-    for (let i = 1; i <= num; i++) {    
-        let table = document.createElement("div");    
-        table.classList.add("table");    
-        table.textContent = `طاولة ${i}`;    
-        table.setAttribute("data-table", i);    
-        table.addEventListener("click", () => openTable(i));    
-        container.appendChild(table);    
-    }    
-}    
-
-function openTable(tableNumber) {    
-    localStorage.setItem("currentTable", tableNumber);    
-    document.getElementById("main-content").innerHTML = `    
-        <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>    
-        <h3>قائمة الطعام</h3>    
-        <div id="menu"></div>    
-        <h3>الطلبات</h3>    
-        <ul id="ordersList"></ul>    
-        <button onclick="clearOrders()">حذف الكل</button>    
-        <button onclick="loadHomeScreen()">رجوع</button>    
-    `;    
-    displayMenu();    
-    displayOrders();    
-}    
-
-function displayMenu() {    
-    let menuDiv = document.getElementById("menu");    
-    menuDiv.innerHTML = "";    
-    let menuItems = JSON.parse(localStorage.getItem("menu")) || [];    
-    menuItems.forEach(item => {    
-        let button = document.createElement("button");    
-        button.textContent = `${item.name} - ${item.price} جنيه`;    
-        button.onclick = () => addToOrder(item);    
-        menuDiv.appendChild(button);    
-    });    
-}    
-
-function addToOrder(item) {    
-    let tableNumber = localStorage.getItem("currentTable");    
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];    
-    orders.push({ ...item, option: "", note: "" });    
-    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));    
-    displayOrders();    
-}    
-
-function displayOrders() {    
-    let tableNumber = localStorage.getItem("currentTable");    
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];    
-    let list = document.getElementById("ordersList");    
-    list.innerHTML = "";    
-    orders.forEach((item, index) => {    
-        let li = document.createElement("li");    
-        li.innerHTML = `    
-            ${item.name} - ${item.price} جنيه    
-            <div class="options">    
-                <button class="${item.option === 'إسباجتي' ? 'selected' : ''}" onclick="setOption(${index}, 'إسباجتي')">إسباجتي</button>    
-                <button class="${item.option === 'مقصوصة' ? 'selected' : ''}" onclick="setOption(${index}, 'مقصوصة')">مقصوصة</button>    
-                <button onclick="addNote(${index})">${item.note || 'ملحوظة'}</button>    
-                <button onclick="removeOrder(${index})">❌</button>    
-            </div>    
-        `;    
-        list.appendChild(li);    
-    });    
-}    
-
-function setOption(index, option) {    
-    let tableNumber = localStorage.getItem("currentTable");    
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];    
-    orders[index].option = option;    
-    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));    
-    displayOrders();    
-}    
-
-function addNote(index) {    
-    let note = prompt("أدخل ملاحظتك:");    
-    if (note !== null) {    
-        let tableNumber = localStorage.getItem("currentTable");    
-        let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];    
-        orders[index].note = note;    
-        localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));    
-        displayOrders();    
-    }    
-}    
-
-function removeOrder(index) {    
-    let tableNumber = localStorage.getItem("currentTable");    
-    let orders = JSON.parse(localStorage.getItem(`orders_${tableNumber}`)) || [];    
-    orders.splice(index, 1);    
-    localStorage.setItem(`orders_${tableNumber}`, JSON.stringify(orders));    
-    displayOrders();    
-}    
-
-function clearOrders() {    
-    let tableNumber = localStorage.getItem("currentTable");    
-    localStorage.removeItem(`orders_${tableNumber}`);    
-    displayOrders();    
-}    
-
-function manageMenu() {    
-    document.getElementById("main-content").innerHTML = `    
-        <h2>إدارة المنيو</h2>    
-        <div id="menuList"></div>    
-        <button onclick="addMenuItem()">إضافة صنف</button>    
-        <button onclick="loadHomeScreen()">رجوع</button>    
-    `;    
-    displayMenuItems();    
-}    
-
-function addMenuItem() {    
-    let name = prompt("اسم الصنف:");    
-    let price = prompt("السعر:");    
-    if (!name || !price || isNaN(price)) return;    
-    let menu = JSON.parse(localStorage.getItem("menu")) || [];    
-    menu.push({ name, price });    
-    localStorage.setItem("menu", JSON.stringify(menu));    
-    displayMenuItems();    
-}    
-
-function displayMenuItems() {    
-    let menuList = document.getElementById("menuList");    
-    menuList.innerHTML = "";    
-    let menu = JSON.parse(localStorage.getItem("menu")) || [];    
-    menu.forEach((item, index) => {    
-        let div = document.createElement("div");    
-        div.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem(${index})">❌</button>`;    
-        menuList.appendChild(div);    
-    });    
-}    
-
-loadHomeScreen();
-
-</script>    <script>
-function removeMenuItem(index) {
-let menu = JSON.parse(localStorage.getItem("menu")) || [];
-menu.splice(index, 1);
-localStorage.setItem("menu", JSON.stringify(menu));
-displayMenuItems(); // تحديث القائمة بعد الحذف
-}
-</script>  </body>
-
+</body>
 </html>
