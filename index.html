@@ -58,6 +58,20 @@
             justify-content: center;
             cursor: pointer;
         }
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+        ul li {
+            background: white;
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
     </style>
 </head>
 <body>
@@ -68,7 +82,6 @@
     <main id="main-content">
         <button onclick="createTables()">إنشاء ترابيزات</button>
         <button onclick="manageMenu()">إدارة المنيو</button>
-        <button onclick="viewAllOrders()">عرض كل الطلبات</button>
         <div id="tablesContainer"></div>
     </main>
     <script>
@@ -89,6 +102,21 @@
             table.addEventListener("click", () => openTable(i));
             container.appendChild(table);
         }
+    }
+
+    function openTable(tableNumber) {
+        localStorage.setItem("currentTable", tableNumber);
+        document.getElementById("main-content").innerHTML = `
+            <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
+            <h3>قائمة الطعام</h3>
+            <div id="menu"></div>
+            <h3>الطلبات</h3>
+            <ul id="ordersList"></ul>
+            <button onclick="clearOrders()">حذف الكل</button>
+            <button onclick="loadHomeScreen()">رجوع</button>
+        `;
+        displayMenu();
+        displayOrders();
     }
 
     function manageMenu() {
@@ -133,7 +161,6 @@
         document.getElementById("main-content").innerHTML = `
             <button onclick="createTables()">إنشاء ترابيزات</button>
             <button onclick="manageMenu()">إدارة المنيو</button>
-            <button onclick="viewAllOrders()">عرض كل الطلبات</button>
             <div id="tablesContainer"></div>
         `;
         loadTables();
