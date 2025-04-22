@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="ar">
+<!DOCTYPE html>
+<html lang="ar">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,27 +27,24 @@
             font-size: 12px;
             color: white;
         }
-        button {
-            padding: 10px 20px;
+        main {
+            padding: 20px;
+        }
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
             margin: 5px;
-            background: red;
-            color: white;
             border: none;
+            border-radius: 4px;
             cursor: pointer;
-            border-radius: 5px;
+            font-size: 14px;
         }
-        button:hover {
-            opacity: 0.8;
-        }
-        .selected {
-            background: green !important;
-        }
-        #tablesContainer {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-top: 20px;
-        }
+        .btn-primary { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn:hover { opacity: 0.9; }
+        /* Tables Grid */
+        #tablesContainer { display: flex; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
         .table {
             width: 100px;
             height: 100px;
@@ -57,20 +55,41 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            border-radius: 8px;
+            transition: transform 0.2s;
         }
-        ul {
-            list-style: none;
-            padding: 0;
+        .table:hover { transform: scale(1.05); }
+        /* Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
         }
-        ul li {
-            background: white;
-            padding: 10px;
-            margin: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
+        .modal {
+            background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px;
+            text-align: right;
+        }
+        .modal input {
+            width: 100%; padding: 8px; margin: 5px 0; box-sizing: border-box;
+            border: 1px solid #ccc; border-radius: 4px;
+        }
+        /* Menu List */
+        #menuList { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 20px; }
+        .menu-card {
+            background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .menu-card h4 { margin: 0; }
+        .menu-actions { margin-top: 10px; display: flex; justify-content: space-between; }
+        /* Table Orders */
+        #menuGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-top: 20px; }
+        .item-card {
+            background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .orders-list { list-style: none; padding: 0; margin-top: 20px; }
+        .orders-list li {
+            background: white; padding: 10px; margin: 5px 0; border-radius: 5px;
+            display: flex; justify-content: space-between; align-items: center;
         }
     </style>
 </head>
@@ -80,94 +99,232 @@
         <span class="small-text">محمد وليد سعيد حسن عبد الهادي</span>
     </header>
     <main id="main-content">
-        <button onclick="createTables()">إنشاء ترابيزات</button>
-        <button onclick="manageMenu()">إدارة المنيو</button>
+        <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
+        <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
         <div id="tablesContainer"></div>
     </main>
+
+    <!-- Modal for Menu Item -->
+    <div class="modal-overlay" id="menuModal">
+        <div class="modal">
+            <h3 id="modalTitle">إضافة صنف</h3>
+            <input type="text" id="menuName" placeholder="اسم الصنف">
+            <input type="number" id="menuPrice" placeholder="السعر (جنيه)">
+            <div style="text-align: left; margin-top: 10px;">
+                <button class="btn btn-primary" onclick="saveMenuItem()">حفظ</button>
+                <button class="btn btn-secondary" onclick="closeModal()">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let editIndex = -1;
+
         function createTables() {
             let num = prompt("كم عدد الترابيزات؟");
             if (!num || isNaN(num) || num <= 0) return;
             localStorage.setItem("numTables", num);
             loadTables();
-        }function loadTables() {
-        let num = localStorage.getItem("numTables") || 0;
-        let container = document.getElementById("tablesContainer");
-        container.innerHTML = "";
-        for (let i = 1; i <= num; i++) {
-            let table = document.createElement("div");
-            table.classList.add("table");
-            table.textContent = `طاولة ${i}`;
-            table.setAttribute("data-table", i);
-            table.addEventListener("click", () => openTable(i));
-            container.appendChild(table);
         }
-    }
 
-    function openTable(tableNumber) {
-        localStorage.setItem("currentTable", tableNumber);
-        document.getElementById("main-content").innerHTML = `
-            <h2>إدارة الطلبات - طاولة ${tableNumber}</h2>
-            <h3>قائمة الطعام</h3>
-            <div id="menu"></div>
-            <h3>الطلبات</h3>
-            <ul id="ordersList"></ul>
-            <button onclick="clearOrders()">حذف الكل</button>
-            <button onclick="loadHomeScreen()">رجوع</button>
-        `;
-        displayMenu();
-        displayOrders();
-    }
+        function loadTables() {
+            let num = +localStorage.getItem("numTables") || 0;
+            let container = document.getElementById("tablesContainer");
+            container.innerHTML = "";
+            for (let i = 1; i <= num; i++) {
+                let div = document.createElement('div');
+                div.className = 'table';
+                div.textContent = `طاولة ${i}`;
+                div.onclick = () => openTable(i);
+                container.appendChild(div);
+            }
+        }
 
-    function manageMenu() {
-        document.getElementById("main-content").innerHTML = `
-            <h2>إدارة المنيو</h2>
-            <div id="menuList"></div>
-            <button onclick="addMenuItem()">إضافة صنف</button>
-            <button onclick="loadHomeScreen()">رجوع</button>
-        `;
-        displayMenuItems();
-    }
+        function manageMenu() {
+            let main = document.getElementById('main-content');
+            main.innerHTML = `
+                <h2>إدارة المنيو</h2>
+                <div>
+                    <input type="text" id="searchMenu" placeholder="🔍 بحث..." oninput="filterMenu()" style="width: 60%; padding: 8px; margin: 10px 0;">
+                    <button class="btn btn-primary" onclick="openAddModal()">إضافة صنف +</button>
+                </div>
+                <div id="menuList"></div>
+                <div style="margin-top: 20px; text-align: right;">عدد الأصناف: <span id="countMenu">0</span></div>
+                <button class="btn btn-secondary" onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayMenuItems();
+        }
 
-    function addMenuItem() {
-        let name = prompt("اسم الصنف:");
-        let price = prompt("السعر:");
-        if (!name || !price || isNaN(price)) return;
-        let menu = JSON.parse(localStorage.getItem("menu")) || [];
-        menu.push({ name, price });
-        localStorage.setItem("menu", JSON.stringify(menu));
-        displayMenuItems();
-    }
+        function displayMenuItems() {
+            let list = document.getElementById('menuList');
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            list.innerHTML = '';
+            menu.forEach((item, idx) => {
+                let card = document.createElement('div');
+                card.className = 'menu-card';
+                card.innerHTML = `
+                    <h4>${item.name}</h4>
+                    <div>${item.price} جنيه</div>
+                    <div class="menu-actions">
+                        <button class="btn btn-secondary" onclick="openEditModal(${idx})">✏️</button>
+                        <button class="btn btn-danger" onclick="removeMenuItem(${idx})">🗑️</button>
+                    </div>
+                `;
+                list.appendChild(card);
+            });
+            document.getElementById('countMenu').textContent = menu.length;
+        }
 
-    function displayMenuItems() {
-        let menuList = document.getElementById("menuList");
-        menuList.innerHTML = "";
-        let menu = JSON.parse(localStorage.getItem("menu")) || [];
-        menu.forEach((item, index) => {
-            let div = document.createElement("div");
-            div.innerHTML = `${item.name} - ${item.price} جنيه <button onclick="removeMenuItem(${index})">❌</button>`;
-            menuList.appendChild(div);
-        });
-    }
+        function filterMenu() {
+            let query = document.getElementById('searchMenu').value.trim().toLowerCase();
+            let cards = document.querySelectorAll('.menu-card');
+            cards.forEach(card => {
+                let text = card.querySelector('h4').textContent.toLowerCase();
+                card.style.display = text.includes(query) ? 'flex' : 'none';
+            });
+        }
 
-    function removeMenuItem(index) {
-        let menu = JSON.parse(localStorage.getItem("menu")) || [];
-        menu.splice(index, 1);
-        localStorage.setItem("menu", JSON.stringify(menu));
-        displayMenuItems();
-    }
+        function openAddModal() {
+            editIndex = -1;
+            document.getElementById('modalTitle').textContent = 'إضافة صنف';
+            document.getElementById('menuName').value = '';
+            document.getElementById('menuPrice').value = '';
+            document.getElementById('menuModal').style.display = 'flex';
+        }
 
-    function loadHomeScreen() {
-        document.getElementById("main-content").innerHTML = `
-            <button onclick="createTables()">إنشاء ترابيزات</button>
-            <button onclick="manageMenu()">إدارة المنيو</button>
-            <div id="tablesContainer"></div>
-        `;
+        function openEditModal(idx) {
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            editIndex = idx;
+            document.getElementById('modalTitle').textContent = 'تعديل صنف';
+            document.getElementById('menuName').value = menu[idx].name;
+            document.getElementById('menuPrice').value = menu[idx].price;
+            document.getElementById('menuModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('menuModal').style.display = 'none';
+        }
+
+        function saveMenuItem() {
+            let name = document.getElementById('menuName').value.trim();
+            let price = document.getElementById('menuPrice').value.trim();
+            if (!name || !price || isNaN(price)) return;
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            if (editIndex >= 0) {
+                menu[editIndex] = { name, price };
+            } else {
+                menu.push({ name, price });
+            }
+            localStorage.setItem('menu', JSON.stringify(menu));
+            closeModal();
+            displayMenuItems();
+        }
+
+        function removeMenuItem(idx) {
+            if (!confirm('هل أنت متأكد من حذف هذا الصنف؟')) return;
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            menu.splice(idx, 1);
+            localStorage.setItem('menu', JSON.stringify(menu));
+            displayMenuItems();
+        }
+
+        function loadHomeScreen() {
+            let main = document.getElementById('main-content');
+            main.innerHTML = `
+                <button class="btn btn-primary" onclick="createTables()">إنشاء ترابيزات</button>
+                <button class="btn btn-secondary" onclick="manageMenu()">إدارة المنيو</button>
+                <div id="tablesContainer"></div>
+            `;
+            loadTables();
+        }
+
+        // Table Orders Logic
+        function openTable(tableNumber) {
+            localStorage.setItem('currentTable', tableNumber);
+            let main = document.getElementById('main-content');
+            main.innerHTML = `
+                <h2>إدارة الطلبات – طاولة ${tableNumber}</h2>
+                <div id="menuGrid"></div>
+                <h3>الطلبات</h3>
+                <ul class="orders-list" id="ordersList"></ul>
+                <div style="margin-top: 10px; text-align: right; font-weight: bold;">الإجمالي: <span id="totalPrice">0</span> جنيه</div>
+                <button class="btn btn-danger" onclick="clearOrders()">حذف الكل</button>
+                <button class="btn btn-secondary" onclick="loadHomeScreen()">رجوع</button>
+            `;
+            displayMenuForTable();
+            displayOrders();
+        }
+
+        function displayMenuForTable() {
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            let grid = document.getElementById('menuGrid');
+            grid.innerHTML = '';
+            menu.forEach((item, idx) => {
+                let card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div>
+                        <h4>${item.name}</h4>
+                        <div>${item.price} جنيه</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="addToOrder(${idx})">+</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function addToOrder(idx) {
+            let table = localStorage.getItem('currentTable');
+            let key = `orders_${table}`;
+            let orders = JSON.parse(localStorage.getItem(key)) || [];
+            let menu = JSON.parse(localStorage.getItem('menu')) || [];
+            let item = menu[idx];
+            let exist = orders.find(o => o.name === item.name);
+            if (exist) exist.qty++;
+            else orders.push({ name: item.name, price: +item.price, qty: 1 });
+            localStorage.setItem(key, JSON.stringify(orders));
+            displayOrders();
+        }
+
+        function displayOrders() {
+            let table = localStorage.getItem('currentTable');
+            let key = `orders_${table}`;
+            let orders = JSON.parse(localStorage.getItem(key)) || [];
+            let list = document.getElementById('ordersList');
+            list.innerHTML = '';
+            let total = 0;
+            orders.forEach((o, i) => {
+                total += o.price * o.qty;
+                let li = document.createElement('li');
+                li.innerHTML = `
+                    <span>${o.name} × ${o.qty}</span>
+                    <span>${o.price * o.qty} ج</span>
+                    <button class="btn btn-danger" onclick="removeOne(${i})">–</button>
+                `;
+                list.appendChild(li);
+            });
+            document.getElementById('totalPrice').textContent = total;
+        }
+
+        function removeOne(idx) {
+            let table = localStorage.getItem('currentTable');
+            let key = `orders_${table}`;
+            let orders = JSON.parse(localStorage.getItem(key)) || [];
+            if (orders[idx].qty > 1) orders[idx].qty--;
+            else orders.splice(idx, 1);
+            localStorage.setItem(key, JSON.stringify(orders));
+            displayOrders();
+        }
+
+        function clearOrders() {
+            if (!confirm('هل أنت متأكد من حذف جميع الطلبات؟')) return;
+            let table = localStorage.getItem('currentTable');
+            localStorage.removeItem(`orders_${table}`);
+            displayOrders();
+        }
+
+        // Initialize
         loadTables();
-    }
-
-    loadHomeScreen();
-</script>
-
+    </script>
 </body>
 </html>
